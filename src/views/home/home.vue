@@ -81,7 +81,7 @@
         </div>
       </div>
       <div class="section-body">
-         <a-button type="primary" long @click="handleSelectData">
+         <a-button type="primary" long @click="handleSelectData" :loading="isSelectingData" :disabled="isSelectingData">
            {{ t('selectData') }}
          </a-button>
          
@@ -228,6 +228,7 @@ export default {
     return {
       configList: [],
       loading: false,
+      isSelectingData: false,
       bannerLoading: false,
       formData: {},
       locales: {
@@ -821,15 +822,246 @@ export default {
       this.isEditingApiKey = false;
     },
     // 选择数据
-    async handleSelectData() {   
+    async handleSelectData() {
+      this.isSelectingData = true;
+      try {
       this.recordIdList = [];
       const { baseId, tableId, viewId } = await bitable.base.getSelection();
       // 基础数据
       this.edit.appToken = baseId;
       this.edit.tableId = tableId;
       this.edit.viewId = viewId;
+      // 检测当前表格字段是否符合规则
+      const requiredFields = ['商品标题', '产品描述', '参考图'];
+      try {
+        const table = await bitable.base.getTable(tableId);
+        const fieldMetaList = await table.getFieldMetaList();
+        const existingFieldNames = fieldMetaList.map(field => field.name);
+        
+        const missingFields = requiredFields.filter(field => !existingFieldNames.includes(field));
+        
+        if (missingFields.length > 0) {
+          ui.showToast({
+            toastType: 'error',
+            message: `当前表格缺失以下字段，请检查: 「  ${missingFields.join('、')}  」是否存在`
+          });
+          return;
+        }
+
+        // 检查并强制转换核心字段类型
+        const typeMapping = {
+          '商品标题': FieldType.Text,
+          '产品描述': FieldType.Text,
+          '参考图': FieldType.Attachment
+        };
+
+        for (const [fieldName, expectedType] of Object.entries(typeMapping)) {
+          const field = fieldMetaList.find(f => f.name === fieldName);
+          if (field && field.type !== expectedType) {
+            try {
+              console.log(`Converting field ${fieldName} from ${field.type} to ${expectedType}`);
+              await table.setField(field.id, { type: expectedType });
+            } catch (err) {
+              console.error(`Failed to convert field ${fieldName}:`, err);
+              ui.showToast({
+                toastType: 'warning',
+                message: `字段「${fieldName}」类型不正确且无法自动转换，请手动修改为${expectedType === FieldType.Attachment ? '附件' : '文本'}类型`
+              });
+              // 如果转换失败，可能需要终止，或者让用户自行处理。根据需求“如果类型错误，强制转换为正确类型”，失败则意味着无法满足需求。
+              // 这里选择抛出错误终止流程，以免后续逻辑报错
+              throw new Error(`Field ${fieldName} type mismatch and conversion failed`);
+            }
+          }
+        }
+        
+
+        // 自动补充字段
+        
+        // 1. 任务运行状态
+         const statusFieldName = '任务运行状态';
+         const statusOptionsConfig = [
+           { name: '待创建', color: 0 }, // 0: 灰色
+           { name: '已排队', color: 2 }, // 2: 橙色
+           { name: '执行中', color: 4 }, // 4: 绿色
+           { name: '已完成', color: 5 }, // 5: 蓝色
+           { name: '已失败', color: 1 }  // 1: 红色
+         ];
+         
+         const existingStatusField = fieldMetaList.find(f => f.name === statusFieldName);
+         if (existingStatusField) {
+            // 存在则检测类型
+            if (existingStatusField.type !== FieldType.SingleSelect) {
+              console.log(`Converting ${statusFieldName} to SingleSelect`);
+              await table.setField(existingStatusField.id, { 
+                type: FieldType.SingleSelect,
+                property: { options: statusOptionsConfig }
+              });
+            }
+         } else {
+           // 不存在则创建
+            await table.addField({
+              type: FieldType.SingleSelect,
+              name: statusFieldName,
+              property: { options: statusOptionsConfig }
+            });
+         }
+         
+         // --- 统一设置“任务运行状态”默认值 ---
+         try {
+           const statusField = await table.getField(statusFieldName);
+           let statusOptions = await statusField.getOptions();
+           
+           // 如果选项为空（可能是转换类型时丢失），重新设置选项
+           if (!statusOptions || statusOptions.length === 0) {
+              console.log('Options missing for status field, resetting options...');
+              // 注意：setField 修改属性时不需要传 type
+              await table.setField(statusField.id, { property: { options: statusOptionsConfig } });
+              statusOptions = await statusField.getOptions();
+           }
+
+           const targetOption = statusOptions.find(opt => opt.name === '待创建');
+           if (targetOption) {
+             const view = await table.getViewById(viewId);
+             const recordIdList = await view.getVisibleRecordIdList();
+             for (const recordId of recordIdList) {
+                // 如果值为空，则设置默认值
+                const val = await statusField.getValue(recordId);
+                if (!val) {
+                  await statusField.setValue(recordId, targetOption.id);
+                }
+             }
+           }
+         } catch (e) {
+           console.error('Set default value for status field failed:', e);
+         }
+
+         // 2. 任务进度
+         const progressFieldName = '任务进度';
+         const existingProgressField = fieldMetaList.find(f => f.name === progressFieldName);
+         let shouldCreateProgress = false;
+
+         if (existingProgressField) {
+            // 存在则检测类型
+            if (existingProgressField.type !== FieldType.Progress) {
+               console.log(`Deleting ${progressFieldName} due to type mismatch`);
+               try {
+                   await table.deleteField(existingProgressField.id);
+                   shouldCreateProgress = true;
+               } catch (error) {
+                   console.error(`Failed to delete field ${progressFieldName}:`, error);
+                   // 如果删除失败，可能需要中断或抛出错误，或者尝试直接 setField？
+                   // 用户要求是“删除掉”，如果删除不了，后续创建也会报错（重名）。
+                   // 这里简单的抛出异常或者让后续逻辑去处理
+                   throw error;
+               }
+            }
+         } else {
+            shouldCreateProgress = true;
+         }
+
+         if (shouldCreateProgress) {
+           await table.addField({
+             type: FieldType.Progress,
+             name: progressFieldName,
+             property: { formatter: '0%' }
+           });
+         }
+         
+         // --- 统一设置“任务进度”默认值 ---
+         try {
+            const progressField = await table.getField(progressFieldName);
+            const view = await table.getViewById(viewId);
+            const recordIdList = await view.getVisibleRecordIdList();
+            for (const recordId of recordIdList) {
+               const val = await progressField.getValue(recordId);
+               // 数字类型 getValue 返回可能不同，这里简单判断
+               if (val === null || val === undefined) {
+                 await progressField.setValue(recordId, 0);
+               }
+            }
+         } catch (e) {
+            console.error('Set default value for progress field failed:', e);
+         }
+
+         // 3. 输出图数量
+         const outputFieldName = '输出图数量';
+         const numOptions = [];
+         for (let i = 1; i <= 20; i++) {
+             numOptions.push({ name: String(i) });
+         }
+         
+         const existingOutputField = fieldMetaList.find(f => f.name === outputFieldName);
+         if (existingOutputField) {
+             if (existingOutputField.type !== FieldType.SingleSelect) {
+                 console.log(`Converting ${outputFieldName} to SingleSelect`);
+                 await table.setField(existingOutputField.id, {
+                     type: FieldType.SingleSelect,
+                     property: { options: numOptions }
+                 });
+             }
+         } else {
+           await table.addField({
+             type: FieldType.SingleSelect,
+             name: outputFieldName,
+             property: { options: numOptions }
+           });
+         }
+         
+         // --- 统一设置“输出图数量”默认值 ---
+         try {
+           const outputNumField = await table.getField(outputFieldName);
+           let outputOptions = await outputNumField.getOptions();
+           
+           // 如果选项为空，重新设置
+           if (!outputOptions || outputOptions.length === 0) {
+               console.log('Options missing for output field, resetting options...');
+               await table.setField(outputNumField.id, { property: { options: numOptions } });
+               outputOptions = await outputNumField.getOptions();
+           }
+           
+           const targetOutputOption = outputOptions.find(opt => opt.name === '5');
+           if (targetOutputOption) {
+              const view = await table.getViewById(viewId);
+              const recordIdList = await view.getVisibleRecordIdList();
+              for (const recordId of recordIdList) {
+                const val = await outputNumField.getValue(recordId);
+                if (!val) {
+                  await outputNumField.setValue(recordId, targetOutputOption.id);
+                }
+              }
+           }
+         } catch (e) {
+            console.error('Set default value for output field failed:', e);
+         }
+
+        // 4. 生成结果
+        const resultFieldName = '生成结果';
+        const existingResultField = fieldMetaList.find(f => f.name === resultFieldName);
+        if (existingResultField) {
+            if (existingResultField.type !== FieldType.Attachment) {
+                console.log(`Converting ${resultFieldName} to Attachment`);
+                await table.setField(existingResultField.id, { type: FieldType.Attachment });
+            }
+        } else {
+          await table.addField({ type: FieldType.Attachment, name: resultFieldName });
+        }
+
+      } catch (error) {
+        console.error('Check fields error:', error);
+        ui.showToast({
+          toastType: 'error',
+          message: '检测字段失败'
+        });
+        return;
+      }
+
       // 获取多选，选中的表格数据 recordIdList 是一个数组，表格的ID
       this.recordIdList = await bitable.ui.selectRecordIdList(tableId, viewId);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.isSelectingData = false;
+      }
     },
     // 修改后使用中文注释
     async handleAddTable() {
