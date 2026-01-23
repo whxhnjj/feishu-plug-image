@@ -1,0 +1,35 @@
+{
+  "name": "feiyu-image-web",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --mode development",
+    "build:dev": "vite build --mode development",
+    "build:pro": "vite build --mode production",
+    "build": "vite build --mode production",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@lark-base-open/js-sdk": "^1.0.0",
+    "axios": "^1.13.2",
+    "crypto-js": "^4.2.0",
+    "dayjs": "^1.11.19",
+    "pinia": "^3.0.2",
+    "pinia-plugin-persistedstate": "^4.2.0",
+    "qs": "^6.14.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "tinycolor2": "^1.6.0",
+    "vue": "^3.5.13",
+    "vue-json-pretty": "^2.6.0",
+    "vue-router": "^4.6.3",
+    "vue-toastification": "^2.0.0-rc.5"
+  },
+  "devDependencies": {
+    "@arco-design/web-vue": "^2.57.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "sass": "^1.86.3",
+    "vite": "^6.2.0",
+    "vite-plugin-compression": "^0.5.1"
+  }
+}

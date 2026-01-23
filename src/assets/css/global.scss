@@ -1,0 +1,73 @@
+@use './base.scss';
+
+:root {
+  --custom-app-bg: #faf8ff;
+  --custom-card-bg: #ffffff;
+  --custom-text-color: #2c3e50;
+  --custom-text-secondary: #606266;
+  --custom-border-color: rgba(0,0,0,0.03);
+  --custom-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  --custom-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body[arco-theme='dark'] {
+  --custom-app-bg: var(--color-bg-1);
+  --custom-card-bg: var(--color-bg-2);
+  --custom-text-color: var(--color-text-1);
+  --custom-text-secondary: var(--color-text-3);
+  --custom-border-color: var(--color-border);
+  --custom-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  --custom-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td,hr,button,article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section {
+  margin: 0;
+  padding: 0;
+}
+* {
+  box-sizing: border-box;
+}
+ul,ol {
+  list-style: none;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+html, body, #app, .app-container {
+  height: 100%;
+}
+
+.drag {
+  /* 设置该属性表明这是可拖拽区域，用来移动窗口 */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.no-drag{
+  -webkit-app-region: no-drag;
+  user-select: none;
+}
+
+.common-text-pointer-cursor{
+    cursor: pointer;
+}
+.common-text-cursor{
+  cursor: pointer;
+  &:hover{
+    color: #108795;
+  }
+}
+.common-text-left{
+  text-align: left;
+}
+
+.common-no-text{
+  font-size: 12px;
+  color: #898989;
+  font-weight: normal;
+}
+
+.common-tag-style{
+  justify-content: center;
+}
