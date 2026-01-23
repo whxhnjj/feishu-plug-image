@@ -1,0 +1,263 @@
+@charset "UTF-8";
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 基础样式 */
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--custom-text-color);
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: var(--custom-app-bg);
+}[data-v-d66ce91b]:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.icon[data-v-d66ce91b] {
+  cursor: pointer;
+}
+.icon[data-v-d66ce91b]:hover {
+  color: #1890ff;
+}
+.is-all-text[data-v-d66ce91b] {
+  cursor: pointer;
+  line-height: 20px;
+}
+.is-all-text[data-v-d66ce91b]:hover {
+  color: #1890ff;
+}
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  --page-layout-border-radius: 4px;
+}
+
+:root {
+  --custom-app-bg: #faf8ff;
+  --custom-card-bg: #ffffff;
+  --custom-text-color: #2c3e50;
+  --custom-text-secondary: #606266;
+  --custom-border-color: rgba(0,0,0,0.03);
+  --custom-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  --custom-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body[arco-theme=dark] {
+  --custom-app-bg: var(--color-bg-1);
+  --custom-card-bg: var(--color-bg-2);
+  --custom-text-color: var(--color-text-1);
+  --custom-text-secondary: var(--color-text-3);
+  --custom-border-color: var(--color-border);
+  --custom-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  --custom-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fieldset, legend, input, textarea, p, blockquote, th, td, hr, button, article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+html, body, #app, .app-container {
+  height: 100%;
+}
+
+.drag {
+  /* 设置该属性表明这是可拖拽区域，用来移动窗口 */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+  user-select: none;
+}
+
+.common-text-pointer-cursor {
+  cursor: pointer;
+}
+
+.common-text-cursor {
+  cursor: pointer;
+}
+.common-text-cursor:hover {
+  color: #108795;
+}
+
+.common-text-left {
+  text-align: left;
+}
+
+.common-no-text {
+  font-size: 12px;
+  color: #898989;
+  font-weight: normal;
+}
+
+.common-tag-style {
+  justify-content: center;
+}[data-v-c4392305]:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.logo-container[data-v-c4392305] {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.logo-container .logo-text[data-v-c4392305] {
+  font-weight: 800;
+  text-align: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-family: "Arial", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: #22c55e;
+  border-radius: 8px;
+  padding: 6px;
+}
+.logo-container .logo-text img[data-v-c4392305] {
+  max-height: 28px;
+}
+.logo-container .title[data-v-c4392305] {
+  font-size: 20px;
+  color: var(--color-text-1);
+  margin-left: 12px;
+  font-weight: 600;
+}[data-v-38e7e50d]:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.header[data-v-38e7e50d] {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: var(--color-bg-2);
+}
+.header .menu-logo[data-v-38e7e50d] {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.header .header-right[data-v-38e7e50d] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}[data-v-40aaf25e]:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.layout-container[data-v-40aaf25e] {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.layout-header[data-v-40aaf25e] {
+  padding: 0;
+  height: auto;
+  line-height: normal;
+  background: transparent;
+  z-index: 100;
+}
+.layout-content[data-v-40aaf25e] {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.page-body[data-v-40aaf25e] {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  overflow-y: auto;
+  width: 100%;
+}
