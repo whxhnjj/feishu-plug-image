@@ -27,8 +27,9 @@ export default defineConfig(({ mode }) => {
       port: '8000',
       host: true
     },
+    base: './', 
     build: {
-      outDir: env.VITE_APP_FILE_NAME || 'dist',
+      outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: false,
       minify: isProd ? 'terser' : false,

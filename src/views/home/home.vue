@@ -26,7 +26,12 @@
       <div class="section-header">
         <div class="header-left">
           <span class="vertical-bar"></span>
-          <span class="section-title">{{ t('apiKeySetting') }}</span>
+          <span class="section-title" style="margin-right: 2px;">{{ t('apiKeySetting') }}</span>
+          <a-tooltip :content="t('helpCenter')">
+            <span class="icon-help" @click="handleHelpClick">
+              <icon-question-circle />
+            </span>
+          </a-tooltip>
           <a v-if="webUrl" :href="webUrl" target="_blank" class="link-text">{{ t('getApiKey') }}</a>
         </div>
         <div class="header-right">
@@ -74,8 +79,12 @@
           <span class="section-title">{{ t('dataSelection') }}</span>
         </div>
         <div class="header-right">
-           <a-button type="outline" size="mini" class="btn-add-table" @click="handleAddTable">
-             <template #icon><icon-plus /></template>
+          <a-button type="outline" size="mini" class="btn-copy-template" @click="handleUseTemplate" style="margin-right: 8px;">
+            <template #icon><icon-plus /></template>
+            {{ t('createTable') }}
+          </a-button>
+          <a-button type="primary" size="mini" @click="handleSelectData" :loading="isSelectingData">
+            <template #icon><icon-plus /></template>
              {{ t('addDataTable') }}
            </a-button>
         </div>
@@ -201,7 +210,8 @@ import {
   IconInfoCircleFill,
   IconPlayCircle,
   IconPlus,
-  IconLoading
+  IconLoading,
+  IconCopy
 } from '@arco-design/web-vue/es/icon';
 import { AddTask, GetTaskStatus } from "@api/api/index";
 export default {
@@ -222,7 +232,8 @@ export default {
     IconExpand,
     IconPlayCircle,
     IconPlus,
-    IconLoading
+    IconLoading,
+    IconCopy
   },
   data() {
     return {
@@ -231,11 +242,7 @@ export default {
       isSelectingData: false,
       bannerLoading: false,
       formData: {},
-      locales: {
-        zh,
-        en,
-        jp
-      },
+      locales: { zh, en, jp },
       bannerList: [],
       apiKey: localStorage.getItem('FEIYUAPIKEYPLUG') || '',
       isEditingApiKey: false,
@@ -261,10 +268,10 @@ export default {
       pollingTimer: null,
       runningTaskCount: 0,
       isPaused: false,
-      webUrl: 'https://fs.amzfish.cn',
+      webUrl: 'https://feishu.feiyushuju.com',
       deductionRules: {},
       estimatedPoints: 0,
-    // 指示器拖拽状态
+      // 指示器拖拽状态
       indicatorTop: 500,
       isDragging: false,
       dragStartY: 0,
@@ -315,6 +322,9 @@ export default {
     this.pollTaskStatus(); // 加载时检查挂起的任务
   },
   methods: {
+    handleHelpClick() {
+      window.open('https://hey-fish.feishu.cn/docx/X6AadbCE9oDXoyxAgP6cs24on5a?from=from_copylink', '_blank');
+    },
     async getPlugAd() {
       this.bannerLoading = true;
       try {
@@ -394,7 +404,7 @@ export default {
         const res = await GetPlugSelectField();
         if (res.code === 200) {
           this.configList = res.data || [];
-          this.webUrl = res?.domain || 'https://fs.amzfish.cn';
+          this.webUrl = res?.domain || 'https://feishu.feiyushuju.com';
           this.initForm();
         } else {
          ui.showToast({
@@ -445,6 +455,20 @@ export default {
       this.formData = { ...data };
     },
     async handleSubmit() {
+      if (!this.validateApiKey()) return;
+      
+      // 在这里增加一个判断，判断是否有数据表权限，没有的话提示用户没有此多为表格的权限
+      try {
+        const hasPermission = await bitable.base.isEditable();
+        if (!hasPermission) {
+          ui.showToast({ toastType: 'error', message: '您没有此表格的权限，无法运行任务。' });
+          return;
+        }
+      } catch (error) {
+        console.error('Check permission error:', error);
+      }
+
+
       if (this.submitting) return;
       if (this.recordIdList.length === 0) {
         ui.showToast({ toastType: 'error', message: '请先选择数据！' });
@@ -462,7 +486,7 @@ export default {
         const progressField = await table.getField('任务进度');
         const resultField = await table.getField('生成结果');
 
-        // 任务运行时，this.recordIdList 我需要批量将“生成结果”字段附件 内容先清空。
+        // 任务运行时，this.recordIdList 我需要批量将“生成结果”字段附件 内容先清空。 - 先注释
         // await Promise.all(this.recordIdList.map(rId => resultField.setValue(rId, []).catch(e => console.error('Clear field error', e))));
 
         for (let i = 0; i < this.recordIdList.length; i++) {
@@ -616,6 +640,22 @@ export default {
     },
 
     async pollTaskStatus() {
+      // 在这里增加一个判断，判断是否有数据表权限，没有的话提示用户没有此多为表格的权限
+      try {
+        const hasPermission = await bitable.base.isEditable();
+        if (!hasPermission) {
+          ui.showToast({ toastType: 'error', message: '您没有此表格的权限，终止任务运行。' });
+          this.isPaused = true;
+          this.pollingTimer = null;
+          return;
+        }
+      } catch (error) {
+        console.error('Check permission error:', error);
+        this.isPaused = true;
+        this.pollingTimer = null;
+        return;
+      }
+
       // 避免多个轮询循环
       if (this.pollingTimer) {
         clearTimeout(this.pollingTimer);
@@ -623,7 +663,7 @@ export default {
       }
       
       if (this.isPaused) return;
-
+ 
       // 始终从 bridge 读取最新的任务ID
       let currentStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
       if (!Array.isArray(currentStoredTaskIds)) currentStoredTaskIds = [];
@@ -807,6 +847,14 @@ export default {
       this.initForm();
       ui.showToast({ toastType: 'info', message: this.t('reset') });
     },
+    validateApiKey() {
+      const key = this.isEditingApiKey ? this.tempApiKey : this.apiKey;
+      if (!key) {
+        ui.showToast({ toastType: 'error', message: '请填写 API 秘钥' });
+        return false;
+      }
+      return true;
+    },
     startEditApiKey() {
       this.tempApiKey = this.apiKey;
       this.isEditingApiKey = true;
@@ -821,8 +869,23 @@ export default {
       this.tempApiKey = '';
       this.isEditingApiKey = false;
     },
+    handleUseTemplate() {
+      if (!this.validateApiKey()) return;
+      window.open('https://hey-fish.feishu.cn/base/JOODbXcvKa3j9KsJqo5c04SKn6b?from=from_copylink', '_blank');
+    },
     // 选择数据
     async handleSelectData() {
+      if (!this.validateApiKey()) return;
+      // 在这里增加一个判断，判断是否有数据表权限，没有的话提示用户没有此多为表格的权限
+      try {
+        const hasPermission = await bitable.base.isEditable();
+        if (!hasPermission) {
+          ui.showToast({ toastType: 'error', message: '您没有此表格的权限，无法选择数据' });
+          return;
+        }
+      } catch (error) {
+        console.error('Check permission error:', error);
+      }
       this.isSelectingData = true;
       try {
       this.recordIdList = [];
@@ -1065,6 +1128,18 @@ export default {
     },
     // 修改后使用中文注释
     async handleAddTable() {
+      if (!this.validateApiKey()) return;
+      // 在这里增加一个判断，判断是否有数据表权限，没有的话提示用户没有此多为表格的权限
+      try {
+        const hasPermission = await bitable.base.isEditable();
+        if (!hasPermission) {
+          ui.showToast({ toastType: 'error', message: '您没有新建数据表的权限' });
+          return;
+        }
+      } catch (error) {
+        console.error('Check permission error:', error);
+      }
+
       try {
         // 1. 获取所有数据表，用于生成不重复的表名
         const tableList = await bitable.base.getTableList();
@@ -1092,7 +1167,10 @@ export default {
         } else {
           await table.addField({ type: FieldType.Text, name: '商品标题' });
         }
-        console.log(FieldType)
+        // 字段4: 产品描述 (文本)
+        await table.addField({ type: FieldType.Text, name: '产品描述' });
+        // 字段5: 参考图 (附件)
+        await table.addField({ type: FieldType.Attachment, name: '参考图' });
 
         // 字段2: 任务运行状态 (单选)
         await table.addField({
@@ -1118,13 +1196,6 @@ export default {
             formatter: '0%' // 尝试设置格式
           }
         });
-
-        // 字段4: 产品描述 (文本)
-        await table.addField({ type: FieldType.Text, name: '产品描述' });
-
-        // 字段5: 参考图 (附件)
-        await table.addField({ type: FieldType.Attachment, name: '参考图' });
-
         // 字段6: 输出图数量 (单选 1-20)
         const numOptions = [];
         for (let i = 1; i <= 20; i++) {
@@ -1137,7 +1208,6 @@ export default {
             options: numOptions
           }
         });
-
         // 字段7: 生成结果 (附件)
         await table.addField({ type: FieldType.Attachment, name: '生成结果' });
 
@@ -1161,13 +1231,6 @@ export default {
   color: var(--custom-text-color);
   /* overflow: hidden; 移除，由外层 LayoutView 控制滚动 */
 }
-
-/* 主要内容区 */
-.content-body {
-  flex: 1;
-  /* 移除局部滚动，跟随页面滚动 */
-}
-
 /* 轮播图区域 */
 .banner-section {
   margin-bottom: 24px;
@@ -1186,6 +1249,32 @@ export default {
       height: 100%;
       object-fit: cover;
     }
+  }
+}
+
+
+/* 主要内容区 */
+.content-body {
+  flex: 1;
+  /* 移除局部滚动，跟随页面滚动 */
+}
+
+/* 轮播图区域 */
+.banner-section {
+  margin-bottom: 24px;
+}
+
+.icon-help {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  color: var(--color-text-3);
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: rgb(var(--primary-6));
   }
 }
 
@@ -1274,8 +1363,7 @@ export default {
         color: #165DFF;
         text-decoration: none;
         height: 22.5px;
-        display: flex;
-        align-items: center;
+        line-height: 2;
         &:hover {
           text-decoration: underline;
         }
