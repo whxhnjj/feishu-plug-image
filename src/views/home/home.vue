@@ -1259,10 +1259,6 @@ export default {
   /* 移除局部滚动，跟随页面滚动 */
 }
 
-/* 轮播图区域 */
-.banner-section {
-  margin-bottom: 24px;
-}
 
 .icon-help {
   display: inline-flex;
