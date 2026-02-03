@@ -83,7 +83,7 @@
             <template #icon><icon-plus /></template>
             {{ t('createTable') }}
           </a-button>
-          <a-button type="primary" size="mini" @click="handleSelectData" :loading="isSelectingData">
+          <a-button type="primary" size="mini" @click="handleAddTable" :loading="isSelectingData">
             <template #icon><icon-plus /></template>
              {{ t('addDataTable') }}
            </a-button>
