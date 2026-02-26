@@ -44,7 +44,7 @@ service.interceptors.response.use(async (res) => {
   if (res.request.responseType === 'blob' || res.request.responseType === 'arraybuffer') {
     return result;
   }
-  const loginOutCodeArr = [10002,10003,11008];
+  const loginOutCodeArr = [10002,10003,10004];
   if (code === 200) {
     return Promise.resolve(result);
   } else if (loginOutCodeArr.includes(parseFloat(code))) { // API Key 秘钥无效
