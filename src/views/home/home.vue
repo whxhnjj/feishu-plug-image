@@ -1,5 +1,18 @@
 <template>
   <div class="feiyu-home">
+    <!-- 程序运行状态横幅 -->
+    <transition name="fade">
+      <div v-if="runningTaskCount === 0" class="running-banner">
+        <div class="banner-content">
+          <icon-info-circle-fill class="banner-icon" />
+          <div class="banner-text">
+            <div class="text-main">⚠️ 保持窗口开启</div>
+            <div class="text-sub">警告：关闭或切换此窗口将立即终止正在进行的操作，可能导致数据丢失</div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- 轮播广告位 -->
     <div class="banner-section">
       <a-skeleton v-if="bannerLoading" :animation="true">
@@ -722,6 +735,8 @@ export default {
         
         // 强制重置暂停状态并启动轮询
         this.isPaused = false;
+        const currentStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
+        this.runningTaskCount = Array.isArray(currentStoredTaskIds) ? currentStoredTaskIds.length : 0;
         this.pollTaskStatus(); // 开始轮询
 
       } catch (e) {

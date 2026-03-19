@@ -112,3 +112,61 @@
   padding:0 12px; /* 间距保护 */
   white-space: nowrap;
 }
+
+/* 程序运行状态横幅样式 */
+.running-banner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(90deg, #f53f3f 0%, #ff7d00 100%);
+  color: #ffffff;
+  padding: 10px 16px;
+  box-shadow: 0 4px 12px rgba(245, 63, 63, 0.2);
+  margin-bottom: 12px;
+  border-radius:  12px;
+  animation: banner-pulse 2s infinite ease-in-out;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.banner-icon {
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.banner-text {
+  flex: 1;
+}
+
+.text-main {
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.text-sub {
+  font-size: 12px;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+@keyframes banner-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+/* 渐变过渡效果 */
+.fade-enter-active, .fade-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
