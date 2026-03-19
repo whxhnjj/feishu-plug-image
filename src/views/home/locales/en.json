@@ -17,6 +17,8 @@
   "saveConfig": "Save Config",
   "apiKeySaved": "API Key Saved",
   "pleaseSelect": "Select",
+  "pleaseEnter": "Please enter",
+  "points": "Points",
   "complianceTip": "Compliance: Do not generate illegal content.",
   "consumePoints": "(Est. cost {points} points)",
   "dataSelection": "Data Selection",

@@ -116,20 +116,128 @@
         </a-space>
       </a-skeleton>
       <div v-else class="form-list">
-        <div v-for="(item, index) in configList" :key="item.field" class="form-card-item" :style="{ animationDelay: `${index * 0.05}s` }">
+        <!-- 模型选项 -->
+        <div v-if="configList.model" class="form-card-item">
           <div class="item-left">
-            <span class="item-icon" :class="`icon-${index % 4}`">
-               <component :is="getIcon(index)" />
+            <span class="item-icon icon-0"><icon-palette /></span>
+            <div class="item-info">
+              <span class="label-text">{{ configList.model.title }}</span>
+            </div>
+          </div>
+          <div class="item-right">
+            <a-select v-model="formData[configList.model.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect')"
+             :trigger-props="{ autoFitPopupMinWidth: true }">
+              <template #label="{ data }">
+                <div v-if="data" class="model-option-left" style="gap: 4px;">
+                  <div class="model-icon-box" style="width: 20px; height: 20px; border-radius: 4px;">
+                    <img :src="getImgSrc(data.value)" alt="icon" class="model-icon-img" style="width: 12px; height: 12px;" />
+                  </div>
+                  <span class="model-name" style="font-size: 13px;">{{ data.label }}</span>
+                </div>
+              </template>
+              <a-option v-for="opt in configList.model.value" :key="opt.value" :value="opt.value" :label="opt.name">
+                <div class="model-option-wrapper">
+                  <div class="model-option-left">
+                    <div class="model-icon-box">
+                      <img :src="getImgSrc(opt.value)" alt="icon" class="model-icon-img" />
+                    </div>
+                    <div class="model-name-wrapper">
+                      <span class="model-name">{{ opt.name }}</span>
+                      <div v-if="opt.is_active" class="model-badge">
+                        {{ opt.is_active }}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="model-points">{{ opt.points }} {{ t('points') || '积分' }}</span>
+                </div>
+              </a-option>
+            </a-select>
+          </div>
+        </div>
+
+        <!-- 语言选项 -->
+        <div v-if="configList.language" class="form-card-item">
+          <div class="item-left">
+            <span class="item-icon icon-1"><icon-language /></span>
+            <div class="item-info">
+              <span class="label-text">{{ configList.language.title }}</span>
+            </div>
+          </div>
+          <div class="item-right">
+            <a-select v-model="formData[configList.language.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect')"
+             :trigger-props="{ autoFitPopupMinWidth: true }">
+              <a-option v-for="opt in configList.language.value" :key="opt.value" :value="opt.value" :disabled="isLanguageDisabled(opt.value)">{{ opt.name }}</a-option>
+            </a-select>
+          </div>
+        </div>
+
+        <!-- setting 动态配置 -->
+        <div v-if="currentModelSettings" v-for="(item, index) in currentModelSettings" :key="item.field" class="form-card-item">
+          <div class="item-left">
+            <span class="item-icon" :class="`icon-${(index + 2) % 4}`">
+               <component :is="getIcon(index + 2,item.title)" />
             </span>
             <div class="item-info">
               <span class="label-text">{{ item.title }}</span>
             </div>
           </div>
           <div class="item-right">
-            <a-select v-model="formData[item.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect')"
+            <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect') + ' ' + item.title"
              :trigger-props="{ autoFitPopupMinWidth: true }">
-              <a-option v-for="opt in item.value.select" :key="opt" :value="opt">{{ opt }}</a-option>
+              <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value">{{ opt.name }}</a-option>
             </a-select>
+            <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value.min" :max="item.value.max" />
+            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom" content-class="text-input-popover">
+              <div class="text-display-trigger">
+                <span v-if="formData[item.field]" class="text-value">{{ formData[item.field] }}</span>
+                <span v-else class="placeholder">{{ t('pleaseEnter') + ' ' + item.title }}</span>
+              </div>
+              <template #content>
+                <a-textarea
+                  v-model="formData[item.field]"
+                  :placeholder="t('pleaseEnter') + ' ' + item.title"
+                  :max-length="item.value?.max"
+                  allow-clear
+                  show-word-limit
+                  :auto-size="{ minRows: 3, maxRows: 6 }"
+                />
+              </template>
+            </a-popover>
+          </div>
+        </div>
+
+        <!-- fixedSetting 固定配置 -->
+        <div v-if="configList.fixedSetting" v-for="(item, index) in configList.fixedSetting" :key="item.field" class="form-card-item">
+          <div class="item-left">
+            <span class="item-icon" :class="`icon-${(index + 2 + (currentModelSettings ? currentModelSettings.length : 0)) % 4}`">
+               <component :is="getIcon(index + 2 + (currentModelSettings ? currentModelSettings.length : 0),item.title)" />
+            </span>
+            <div class="item-info">
+              <span class="label-text">{{ item.title }}</span>
+            </div>
+          </div>
+          <div class="item-right">
+            <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect') + ' ' + item.title"
+             :trigger-props="{ autoFitPopupMinWidth: true }">
+              <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value">{{ opt.name }}</a-option>
+            </a-select>
+            <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value?.min" :max="item.value?.max" />
+            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom" content-class="text-input-popover">
+              <div class="text-display-trigger">
+                <span v-if="formData[item.field]" class="text-value">{{ formData[item.field] }}</span>
+                <span v-else class="placeholder">{{ t('pleaseEnter') + ' ' + item.title }}</span>
+              </div>
+              <template #content>
+                <a-textarea
+                  v-model="formData[item.field]"
+                  :placeholder="t('pleaseEnter') + ' ' + item.title"
+                  :max-length="item.value?.max"
+                  allow-clear
+                  show-word-limit
+                  :auto-size="{ minRows: 3, maxRows: 6 }"
+                />
+              </template>
+            </a-popover>
           </div>
         </div>
       </div>
@@ -188,10 +296,13 @@
 <script>
 import { bitable, FieldType } from '@lark-base-open/js-sdk';
 const ui = bitable.ui;
-import { GetPlugSelectField, GetPlugAd, GetPlugDeductionSet } from '@api/api/common.js';
+// import { GetPlugSelectField } from '@api/api/common.js';
+import { GetPlugAd } from '@api/api/common.js';
+import jsonData from './data.json';
 import zh from './locales/zh.json';
 import en from './locales/en.json';
 import jp from './locales/jp.json';
+import './style.css';
 import useAppStore from '@/stores/app';
 import { mapState } from 'pinia';
 import { 
@@ -256,12 +367,6 @@ export default {
         total: '',
         title: '',
         desc: '',
-        style: '',
-        scene: '',
-        language: '',
-        aspectRatio: '',
-        size: '',
-        aiModel: '',
       },
       recordIdList: [],
       submitting: false,
@@ -281,6 +386,12 @@ export default {
   },
   computed: {
     ...mapState(useAppStore, ['language']),
+    currentModelSettings() {
+      if (!this.formData.aiModel || !this.configList.setting) {
+        return [];
+      }
+      return this.configList.setting[this.formData.aiModel] || [];
+    },
     indicatorStyle() {
       return {
         top: `${this.indicatorTop}px`,
@@ -303,9 +414,32 @@ export default {
   },
   watch: {
     'formData.aiModel': {
-      handler() {
+      handler(newValue, oldValue) {
+        if (newValue !== oldValue) {
+          // 当模型改变时，动态更新表单
+          // 1. 移除旧模型的设置
+          if (oldValue && this.configList.setting && this.configList.setting[oldValue]) {
+            this.configList.setting[oldValue].forEach(item => {
+              delete this.formData[item.field];
+            });
+          }
+          // 2. 添加新模型的默认设置
+          if (newValue && this.configList.setting && this.configList.setting[newValue]) {
+            this.configList.setting[newValue].forEach(item => {
+              this.formData[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+            });
+          }
+          
+          // 检查当前语言是否被新模型支持
+          const newModelData = this.configList.model.value.find(m => m.value === newValue);
+          if (newModelData && newModelData.excludeLanguage && newModelData.excludeLanguage.includes(this.formData.language)) {
+            // 如果不支持，则重置为默认语言
+            this.formData.language = this.configList.language.default;
+          }
+        }
         this.calculatePoints();
-      }
+      },
+      deep: true
     },
     recordIdList: {
       handler() {
@@ -318,12 +452,36 @@ export default {
     this.indicatorTop = window.innerHeight - 150;
     this.getPlugAd();
     this.getPlugSelectField();
-    this.getPlugDeductionSet();
     this.pollTaskStatus(); // 加载时检查挂起的任务
   },
   methods: {
     handleHelpClick() {
       window.open('https://hey-fish.feishu.cn/docx/X6AadbCE9oDXoyxAgP6cs24on5a?from=from_copylink', '_blank');
+    },
+    getImgSrc(value) {
+      if (!value) return new URL('./img/logo.svg', import.meta.url).href;
+      const lowerValue = value.toLowerCase();
+      if (lowerValue.includes('gemini')) {
+        return new URL('./img/gemini.svg', import.meta.url).href;
+      } else if (lowerValue.includes('nano-banana')) {
+        return new URL('./img/nano-banana.svg', import.meta.url).href;
+      } else if (lowerValue.includes('wan') || lowerValue.includes('万相')) {
+        return new URL('./img/万相.svg', import.meta.url).href;
+      } else if (lowerValue.includes('doubao')) {
+        return new URL('./img/doubao.svg', import.meta.url).href;
+      } else {
+        return new URL('./img/logo.svg', import.meta.url).href;
+      }
+    },
+    isLanguageDisabled(languageCode) {
+      if (!this.formData.aiModel || !this.configList.model || !this.configList.model.value) {
+        return false;
+      }
+      const modelData = this.configList.model.value.find(m => m.value === this.formData.aiModel);
+      if (modelData && modelData.excludeLanguage) {
+        return modelData.excludeLanguage.includes(languageCode);
+      }
+      return false;
     },
     async getPlugAd() {
       this.bannerLoading = true;
@@ -338,29 +496,25 @@ export default {
         this.bannerLoading = false;
       }
     },
-    async getPlugDeductionSet() {
-      try {
-        const res = await GetPlugDeductionSet();
-        if (res.code === 200) {
-          this.deductionRules = res.data || {};
-        }
-      } catch (error) {
-        console.error('Failed to fetch deduction rules:', error);
-      }
-    },
     async calculatePoints() {
       if (this.recordIdList.length === 0) {
         this.estimatedPoints = 0;
         return;
       }
       
-      const model = this.formData.aiModel;
-      if (!model || !this.deductionRules || this.deductionRules[model] === undefined) {
+      const modelValue = this.formData.aiModel;
+      if (!modelValue || !this.configList.model || !this.configList.model.value) {
         this.estimatedPoints = 0;
         return;
       }
 
-      const unitPrice = this.deductionRules[model];
+      const modelData = this.configList.model.value.find(m => m.value === modelValue);
+      if (!modelData) {
+        this.estimatedPoints = 0;
+        return;
+      }
+
+      const unitPrice = modelData.points;
       let totalNum = 0;
 
       try {
@@ -401,7 +555,8 @@ export default {
     async getPlugSelectField () {
       this.loading = true;
       try {
-        const res = await GetPlugSelectField();
+        // const res = await GetPlugSelectField();
+        const res = jsonData;
         if (res.code === 200) {
           this.configList = res.data || [];
           this.webUrl = res?.domain || 'https://feishu.feiyushuju.com';
@@ -442,16 +597,40 @@ export default {
       return text;
     },
     // 获取动态图标
-    getIcon(index) {
-      const icons = ['IconPalette', 'IconImage', 'IconLanguage', 'IconExpand'];
+    getIcon(index,title) {
+      if (['尺寸比例','尺寸','比例'].includes(title)) {
+        return 'IconFullscreen';
+      }
+      if (['设计风格','设计','风格'].includes(title)) {
+        return 'IconBulb';
+      }
+      if (['场景偏好','场景','偏好'].includes(title)) {
+        return 'IconCommon';
+      }
+      const icons = ['IconGift', 'IconPalette', 'IconDesktop', 'IconSend','IconHeart','IconLayers'];
       return icons[index % icons.length];
     },
     // 初始化表单数据
     initForm() {
       const data = {};
-      this.configList.forEach(item => {
-        data[item.field] = item.value.default;
-      });
+      const modelToUse = this.formData.aiModel || (this.configList.model ? this.configList.model.default : undefined);
+
+      if (this.configList.model) {
+        data[this.configList.model.field] = modelToUse;
+      }
+      if (this.configList.language) {
+        data[this.configList.language.field] = this.configList.language.default;
+      }
+      if (this.configList.fixedSetting) {
+        this.configList.fixedSetting.forEach(item => {
+          data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+        });
+      }
+      if (this.configList.setting && modelToUse && this.configList.setting[modelToUse]) {
+        this.configList.setting[modelToUse].forEach(item => {
+          data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+        });
+      }
       this.formData = { ...data };
     },
     async handleSubmit() {
@@ -1222,6 +1401,14 @@ export default {
 };
 </script>
 
+<style lang="scss">
+.arco-trigger-popup{
+  max-width: 325px;
+  .arco-select-option-content{
+    width: 100%;
+  }
+}
+</style>
 <style lang="scss" scoped>
 .feiyu-home {
   display: flex;
@@ -1521,7 +1708,7 @@ export default {
     flex: 1;
     display: flex;
     justify-content: flex-end;
-    max-width: 50%;
+    max-width: 58%;
     
     .minimal-select {
       width: 100%;

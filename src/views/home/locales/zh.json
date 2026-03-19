@@ -17,6 +17,8 @@
   "saveConfig": "保存配置",
   "apiKeySaved": "API Key 已保存",
   "pleaseSelect": "请选择",
+  "pleaseEnter": "请输入",
+  "points": "积分",
   "complianceTip": "合规提示：请遵守法规，禁止生成违法内容。",
   "consumePoints": "(预计消耗 {points} 积分)",
   "dataSelection": "数据选择",

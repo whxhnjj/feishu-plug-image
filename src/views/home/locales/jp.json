@@ -17,6 +17,8 @@
   "saveConfig": "設定を保存",
   "apiKeySaved": "APIキーが保存されました",
   "pleaseSelect": "選択してください",
+  "pleaseEnter": "入力してください",
+  "points": "ポイント",
   "complianceTip": "法令順守：違法コンテンツの生成は禁止です。",
   "consumePoints": "(予想消費 {points} ポイント)",
   "dataSelection": "データ選択",

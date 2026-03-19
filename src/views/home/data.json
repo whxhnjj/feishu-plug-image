@@ -1,0 +1,1102 @@
+{
+    "code": 200,
+    "count": 0,
+    "data": {
+        "model": {
+            "title": "使用模型",
+            "field": "aiModel",
+            "type": "select",
+            "default": "nano-banana-fast",
+            "value": [
+                {
+                    "value": "nano-banana-fast",
+                    "name": "nano-banana-fast",
+                    "points": 3,
+                    "img_total": 9,
+                    "plan": 0,
+                    "is_active": "",
+                    "excludeLanguage": ["zh-CN","zh-TW","ja"]
+                },
+                {
+                    "value": "nano-banana",
+                    "name": "nano-banana",
+                    "points": 4,
+                    "img_total": 9,
+                    "plan": 0,
+                    "is_active": ""
+                },
+                {
+                    "value": "nano-banana-2",
+                    "name": "nano-banana-2",
+                    "points": 4,
+                    "img_total": 14,
+                    "plan": 0,
+                    "is_active": "New"
+                },
+                {
+                    "value": "nano-banana-pro",
+                    "name": "nano-banana-pro",
+                    "points": 5,
+                    "img_total": 11,
+                    "plan": 0,
+                    "is_active": ""
+                },
+                {
+                    "value": "gemini-2.5-flash-image-preview",
+                    "name": "gemini2.5-image",
+                    "points": 3,
+                    "img_total": 9,
+                    "plan": 1,
+                    "is_active": "New"
+                },
+                {
+                    "value": "gemini-3-pro-image-preview-1K",
+                    "name": "gemini3.0-pro-image-1K",
+                    "points": 5,
+                    "img_total": 11,
+                    "plan": 1,
+                    "is_active": "New"
+                },
+                {
+                    "value": "gemini-3-pro-image-preview-2K",
+                    "name": "gemini3.0-pro-image-2K",
+                    "points": 5,
+                    "img_total": 11,
+                    "plan": 1,
+                    "is_active": "New"
+                },
+                {
+                    "value": "gemini-3-pro-image-preview-4K",
+                    "name": "gemini3.0-pro-image-4K",
+                    "points": 9,
+                    "img_total": 11,
+                    "plan": 1,
+                    "is_active": "New"
+                },
+                {
+                    "value": "gemini-3.1-flash-image-preview-1K",
+                    "name": "gemini3.1-image-1K",
+                    "points": 3,
+                    "img_total": 14,
+                    "plan": 1,
+                    "is_active": "New"
+                },
+                {
+                    "value": "gemini-3.1-flash-image-preview-2K",
+                    "name": "gemini3.1-image-2K",
+                    "points": 4,
+                    "img_total": 14,
+                    "plan": 1,
+                    "is_active": "New"
+                },
+                {
+                    "value": "gemini-3.1-flash-image-preview-4K",
+                    "name": "gemini3.1-image-4K",
+                    "points": 5,
+                    "img_total": 14,
+                    "plan": 1,
+                    "is_active": "New"
+                },
+                {
+                    "value": "wan2.5-i2i-preview",
+                    "name": "万相2.5",
+                    "points": 4,
+                    "img_total": 3,
+                    "plan": 2,
+                    "is_active": "New"
+                },
+                {
+                    "value": "wan2.6-image",
+                    "name": "万相2.6",
+                    "points": 4,
+                    "img_total": 4,
+                    "plan": 2,
+                    "is_active": "New"
+                },
+                {
+                    "value": "doubao-seedream-5-0-lite-260128",
+                    "name": "Seedream5.0",
+                    "points": 4,
+                    "img_total": 14,
+                    "plan": 3,
+                    "is_active": "New"
+                }
+            ]
+        },
+        "language": {
+            "title": "输出语言",
+            "field": "language",
+            "type": "select",
+            "default": "en",
+            "value": [
+                {
+                    "value": "en",
+                    "name": "English"
+                },
+                {
+                    "value": "zh-CN",
+                    "name": "简体中文"
+                },
+                {
+                    "value": "zh-TW",
+                    "name": "繁体中文"
+                },
+                {
+                    "value": "es",
+                    "name": "Español"
+                },
+                {
+                    "value": "de",
+                    "name": "Deutsch"
+                },
+                {
+                    "value": "fr",
+                    "name": "Français"
+                },
+                {
+                    "value": "it",
+                    "name": "Italiano"
+                },
+                {
+                    "value": "pt",
+                    "name": "Português"
+                },
+                {
+                    "value": "ja",
+                    "name": "日本語"
+                },
+                {
+                    "value": "ko",
+                    "name": "한국어"
+                },
+                {
+                    "value": "th",
+                    "name": "ไทย"
+                },
+                {
+                    "value": "ru",
+                    "name": "俄语"
+                }
+            ]
+        },
+        "fixedSetting": [
+          {
+             "title": "设计风格",
+             "field": "style",
+             "type": "select",
+             "default": "亚马逊风格",
+             "value": [
+                 {
+                     "value": "亚马逊风格",
+                     "name": "亚马逊风格"
+                 },
+                 {
+                     "value": "简约Ins风",
+                     "name": "简约Ins风"
+                 },
+                 {
+                     "value": "高级奢华",
+                     "name": "高级奢华"
+                 },
+                 {
+                     "value": "科技感",
+                     "name": "科技感"
+                 },
+                 {
+                     "value": "国潮风",
+                     "name": "国潮风"
+                 },
+                 {
+                     "value": "活泼撞色",
+                     "name": "活泼撞色"
+                 },
+                 {
+                     "value": "极简工业风",
+                     "name": "极简工业风"
+                 },
+                 {
+                     "value": "梦幻唯美",
+                     "name": "梦幻唯美"
+                 }
+             ]
+          },
+          {
+             "title": "场景偏好",
+             "field": "scene",
+             "type": "select",
+             "default": "混合 (以使用场景为主)",
+             "value": [
+                 {
+                     "value": "混合 (以使用场景为主)",
+                     "name": "混合 (以使用场景为主)"
+                 },
+                 {
+                     "value": "生活方式使用场景（人物/手部交互）",
+                     "name": "生活方式使用场景（人物/手部交互）"
+                 },
+                 {
+                     "value": "棚拍干净背景（不复刻参考图背景",
+                     "name": "棚拍干净背景（不复刻参考图背景"
+                 }
+             ]
+          }
+        ],
+      "setting": {
+            "nano-banana-fast": [
+                {
+                    "title": "尺寸比例",
+                    "field": "aspectRatio",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "nano-banana": [
+                {
+                    "title": "尺寸比例",
+                    "field": "aspectRatio",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "nano-banana-2": [
+                {
+                    "title": "尺寸比例",
+                    "field": "aspectRatio",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "1:4",
+                            "name": "1:4 竖版"
+                        },
+                        {
+                            "value": "1:8",
+                            "name": "1:8 竖版"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "4:1",
+                            "name": "4:1 横版"
+                        },
+                        {
+                            "value": "8:1",
+                            "name": "8:1 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                },
+                {
+                    "title": "分辨率",
+                    "field": "imageSize",
+                    "type": "select",
+                    "default": "1K",
+                    "value": [
+                        {
+                            "value": "1K",
+                            "name": "1K"
+                        },
+                        {
+                            "value": "2K",
+                            "name": "2K"
+                        },
+                        {
+                            "value": "4K",
+                            "name": "4K"
+                        }
+                    ]
+                }
+            ],
+            "nano-banana-pro": [
+                {
+                    "title": "尺寸比例",
+                    "field": "aspectRatio",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                },
+                {
+                    "title": "分辨率",
+                    "field": "imageSize",
+                    "type": "select",
+                    "default": "1K",
+                    "value": [
+                        {
+                            "value": "1K",
+                            "name": "1K"
+                        },
+                        {
+                            "value": "2K",
+                            "name": "2K"
+                        },
+                        {
+                            "value": "4K",
+                            "name": "4K"
+                        }
+                    ]
+                }
+            ],
+            "gemini-2.5-flash-image-preview": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "gemini-3-pro-image-preview-1K": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "gemini-3-pro-image-preview-2K": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "gemini-3-pro-image-preview-4K": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "gemini-3.1-flash-image-preview-1K": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "1:4",
+                            "name": "1:4 竖版"
+                        },
+                        {
+                            "value": "1:8",
+                            "name": "1:8 竖版"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "4:1",
+                            "name": "4:1 横版"
+                        },
+                        {
+                            "value": "8:1",
+                            "name": "8:1 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "gemini-3.1-flash-image-preview-2K": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "1:4",
+                            "name": "1:4 竖版"
+                        },
+                        {
+                            "value": "1:8",
+                            "name": "1:8 竖版"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "4:1",
+                            "name": "4:1 横版"
+                        },
+                        {
+                            "value": "8:1",
+                            "name": "8:1 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "gemini-3.1-flash-image-preview-4K": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "3:2",
+                    "value": [
+                        {
+                            "value": "Auto",
+                            "name": "Auto"
+                        },
+                        {
+                            "value": "1:1",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "1:4",
+                            "name": "1:4 竖版"
+                        },
+                        {
+                            "value": "1:8",
+                            "name": "1:8 竖版"
+                        },
+                        {
+                            "value": "2:3",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "3:4",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "4:5",
+                            "name": "4:5 竖版"
+                        },
+                        {
+                            "value": "9:16",
+                            "name": "9:16 竖屏"
+                        },
+                        {
+                            "value": "16:9",
+                            "name": "16:9 横屏"
+                        },
+                        {
+                            "value": "5:4",
+                            "name": "5:4 横版"
+                        },
+                        {
+                            "value": "4:3",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "3:2",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "4:1",
+                            "name": "4:1 横版"
+                        },
+                        {
+                            "value": "8:1",
+                            "name": "8:1 横版"
+                        },
+                        {
+                            "value": "21:9",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                }
+            ],
+            "wan2.6-image": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "1200*800",
+                    "value": [
+                        {
+                            "value": "1280*1280",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "800*1200",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "1200*800",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "960*1280",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "1280*960",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "720*1280",
+                            "name": "9:16 竖版"
+                        },
+                        {
+                            "value": "1280*720",
+                            "name": "16:9 横版"
+                        },
+                        {
+                            "value": "1344*576",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                },
+                {
+                    "title": "随机种子",
+                    "field": "seed",
+                    "type": "number",
+                    "default": 10000,
+                    "value": {
+                        "min": 0,
+                        "max": 2147483647
+                    }
+                }
+            ],
+            "wan2.5-i2i-preview": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "1200*800",
+                    "value": [
+                        {
+                            "value": "1280*1280",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "800*1200",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "1200*800",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "960*1280",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "1280*960",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "720*1280",
+                            "name": "9:16 竖版"
+                        },
+                        {
+                            "value": "1280*720",
+                            "name": "16:9 横版"
+                        },
+                        {
+                            "value": "1344*576",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                },
+                {
+                    "title": "随机种子",
+                    "field": "seed",
+                    "type": "number",
+                    "default": 10000,
+                    "value": {
+                        "min": 0,
+                        "max": 2147483647
+                    }
+                }
+            ],
+            "doubao-seedream-5-0-lite-260128": [
+                {
+                    "title": "尺寸比例",
+                    "field": "size",
+                    "type": "select",
+                    "default": "2496x1664",
+                    "value": [
+                        {
+                            "value": "2048x2048",
+                            "name": "1:1 方形"
+                        },
+                        {
+                            "value": "1664x2496",
+                            "name": "2:3 竖版"
+                        },
+                        {
+                            "value": "2496x1664",
+                            "name": "3:2 横版"
+                        },
+                        {
+                            "value": "1728x2304",
+                            "name": "3:4 竖版"
+                        },
+                        {
+                            "value": "2304x1728",
+                            "name": "4:3 横版"
+                        },
+                        {
+                            "value": "1600x2848",
+                            "name": "9:16 竖版"
+                        },
+                        {
+                            "value": "2848x1600",
+                            "name": "16:9 横版"
+                        },
+                        {
+                            "value": "3136x1344",
+                            "name": "21:9 超宽屏"
+                        }
+                    ]
+                },
+                {
+                    "title": "随机种子",
+                    "field": "seed",
+                    "type": "number",
+                    "default": 10000,
+                    "value": {
+                        "min": 0,
+                        "max": 2147483647
+                    }
+                }
+            ]
+        }
+    },
+    "msg": "获取成功"
+}
