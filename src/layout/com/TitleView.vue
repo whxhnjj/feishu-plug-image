@@ -12,7 +12,7 @@ export default {
   props: {
     title: {
       type: String,
-      default: '飞鱼图像生成'
+      default: '飞鱼神图'
     }
   }
 }
