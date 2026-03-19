@@ -46,7 +46,7 @@ export default {
 
 .page-body {
   flex: 1;
-  padding: 16px;
+  padding: 12px;
   overflow-y: auto;
 }
 </style>

@@ -92,14 +92,14 @@
           <span class="section-title">{{ t('dataSelection') }}</span>
         </div>
         <div class="header-right">
-          <a-button type="outline" size="mini" class="btn-copy-template" @click="handleUseTemplate" style="margin-right: 8px;">
-            <template #icon><icon-plus /></template>
-            {{ t('createTable') }}
-          </a-button>
-          <a-button type="primary" size="mini" @click="handleAddTable" :loading="isSelectingData">
+          <a-button type="primary" size="mini" class="btn-copy-template"  style="margin-right: 8px;" @click="handleAddTable" :loading="isSelectingData">
             <template #icon><icon-plus /></template>
              {{ t('addDataTable') }}
            </a-button>
+          <a-button type="outline" size="mini" @click="handleUseTemplate">
+            <template #icon><icon-plus /></template>
+            {{ t('createTable') }}
+          </a-button>
         </div>
       </div>
       <div class="section-body">
@@ -253,6 +253,33 @@
             </a-popover>
           </div>
         </div>
+
+        <!-- 选项记忆 -->
+        <div class="form-card-item">
+          <div class="item-left">
+            <span class="item-icon icon-history">
+               <icon-history />
+            </span>
+            <div class="item-info">
+              <span class="label-text">选项记忆</span>
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="custom-segmented-control">
+              <div class="segmented-slider" :class="memoryMode"></div>
+              <div 
+                class="segmented-item" 
+                :class="{ active: memoryMode === 'remember' }"
+                @click="memoryMode = 'remember'"
+              >记住选择</div>
+              <div 
+                class="segmented-item" 
+                :class="{ active: memoryMode === 'once' }"
+                @click="memoryMode = 'once'"
+              >仅本次</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -303,6 +330,39 @@
         <div class="footer-tip">{{ t('complianceTip') }}</div>
       </div>
     </div>
+
+    <!-- 联系客服悬浮图标 -->
+    <div class="kefu-float-icon" @click="handleKefuClick">
+      <icon-customer-service />
+    </div>
+
+    <!-- 自定义联系客服弹窗 -->
+    <transition name="modal-fade">
+      <div v-if="showKefuModal" class="custom-modal-overlay" @click.self="showKefuModal = false">
+        <div class="custom-modal-container">
+          <div class="kefu-modal-content">
+            <div class="kefu-header">
+              <div class="kefu-title">联系客服</div>
+              <div class="kefu-subtitle">7 * 24小时在线服务</div>
+              <icon-close class="kefu-close-icon" @click="showKefuModal = false" />
+            </div>
+            <div class="kefu-body">
+              <div class="qr-code-container">
+                <img src="https://ai-banana-1251050854.cos.ap-guangzhou.myqcloud.com/feishu/kefu/kefu.png" alt="客服二维码" class="qr-code-img" />
+                <div class="scanning-line"></div>
+              </div>
+              <div class="kefu-tip">扫描二维码，添加专属客服</div>
+              <div class="wechat-btn">
+                <svg viewBox="0 0 1024 1024" width="16" height="16" class="wechat-icon">
+                  <path d="M666.2 438.4c-11.2 0-22.1 1.1-32.6 3.1 1.1-6.1 1.7-12.3 1.7-18.7 0-101.3-116.4-183.4-260-183.4-143.6 0-260 82.1-260 183.4 0 96.3 105.3 175.1 238.8 182.5l-3.8 1.1c-10.1 2.8-19.1 8.8-25.6 17.1l-43.4 55.4c-4.1 5.3-2.1 13 4.4 15.5 2.1 0.8 4.4 0.9 6.6 0.2l76.1-22.9c13.1-3.9 27-4.1 40.2-0.5 21.1 5.7 43.5 8.8 66.7 8.8 11.2 0 22.1-0.7 32.6-2.1-1.1 6.1-1.7 12.3-1.7 18.7 0 84.4 97 152.8 216.7 152.8 119.7 0 216.7-68.4 216.7-152.8 0-84.4-97-152.8-216.7-152.8z m-291.5-51.4c-12.8 0-23.1-10.3-23.1-23.1s10.3-23.1 23.1-23.1 23.1 10.3 23.1 23.1-10.3 23.1-23.1 23.1z m120.3 0c-12.8 0-23.1-10.3-23.1-23.1s10.3-23.1 23.1-23.1 23.1 10.3 23.1 23.1-10.3 23.1-23.1 23.1z m240.6 231.4c-10.6 0-19.3-8.6-19.3-19.3s8.6-19.3 19.3-19.3 19.3 8.6 19.3 19.3-8.6 19.3-19.3 19.3z m100.5 0c-10.6 0-19.3-8.6-19.3-19.3s8.6-19.3 19.3-19.3 19.3 8.6 19.3 19.3-8.6 19.3-19.3 19.3z" fill="#07C160"></path>
+                </svg>
+                <span>微信扫一扫添加</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -335,7 +395,10 @@ import {
   IconPlayCircle,
   IconPlus,
   IconLoading,
-  IconCopy
+  IconCopy,
+  IconCustomerService,
+  IconMessage,
+  IconHistory
 } from '@arco-design/web-vue/es/icon';
 import { AddTask, GetTaskStatus } from "@api/api/index";
 export default {
@@ -357,10 +420,16 @@ export default {
     IconPlayCircle,
     IconPlus,
     IconLoading,
-    IconCopy
+    IconCopy,
+    IconCustomerService,
+    IconMessage,
+    IconHistory
   },
   data() {
     return {
+      showKefuModal: false,
+      memoryMode: 'once', // 'once' or 'remember'
+      storedPreferences: null,
       configList: [],
       loading: false,
       isSelectingData: false,
@@ -428,16 +497,17 @@ export default {
   watch: {
     'formData.aiModel': {
       handler(newValue, oldValue) {
-        if (newValue !== oldValue) {
-          // 当模型改变时，动态更新表单
+        // 只有当模型真正发生改变（且不是初次初始化）时，才执行动态配置的切换逻辑
+        if (newValue && oldValue && newValue !== oldValue) {
+          // 当用户手动切换模型时，动态更新表单
           // 1. 移除旧模型的设置
-          if (oldValue && this.configList.setting && this.configList.setting[oldValue]) {
+          if (this.configList.setting && this.configList.setting[oldValue]) {
             this.configList.setting[oldValue].forEach(item => {
               delete this.formData[item.field];
             });
           }
           // 2. 添加新模型的默认设置
-          if (newValue && this.configList.setting && this.configList.setting[newValue]) {
+          if (this.configList.setting && this.configList.setting[newValue]) {
             this.configList.setting[newValue].forEach(item => {
               this.formData[item.field] = item.type === 'number' ? Number(item.default) : item.default;
             });
@@ -470,6 +540,9 @@ export default {
   methods: {
     handleHelpClick() {
       window.open('https://hey-fish.feishu.cn/docx/X6AadbCE9oDXoyxAgP6cs24on5a?from=from_copylink', '_blank');
+    },
+    handleKefuClick() {
+      this.showKefuModal = true;
     },
     getImgSrc(value) {
       if (!value) return new URL('./img/logo.svg', import.meta.url).href;
@@ -568,6 +641,20 @@ export default {
     async getPlugSelectField () {
       this.loading = true;
       try {
+        // 加载记忆设置 (使用 localStorage)
+        const savedMode = localStorage.getItem('FEIYU_PLUG_MEMORY_MODE');
+        const savedPrefsStr = localStorage.getItem('FEIYU_PLUG_PREFERENCES');
+        
+        this.memoryMode = 'once'; // 默认值
+        if (savedMode === 'remember' && savedPrefsStr) {
+          try {
+            this.storedPreferences = JSON.parse(savedPrefsStr);
+            this.memoryMode = 'remember';
+          } catch (e) {
+            console.error('Parse memory settings error:', e);
+          }
+        }
+
         // const res = await GetPlugSelectField();
         const res = jsonData;
         if (res.code === 200) {
@@ -620,35 +707,73 @@ export default {
       if (['场景偏好','场景','偏好'].includes(title)) {
         return 'IconCommon';
       }
+      if (['选项记忆','记忆'].includes(title)) {
+        return 'IconHistory';
+      }
       const icons = ['IconGift', 'IconPalette', 'IconDesktop', 'IconSend','IconHeart','IconLayers'];
       return icons[index % icons.length];
     },
     // 初始化表单数据
     initForm() {
       const data = {};
-      const modelToUse = this.formData.aiModel || (this.configList.model ? this.configList.model.default : undefined);
+      const isRemember = this.memoryMode === 'remember' && this.storedPreferences;
+      
+      // 1. 确定模型
+      let modelToUse;
+      if (isRemember && this.storedPreferences.aiModel) {
+        modelToUse = this.storedPreferences.aiModel;
+      } else {
+        modelToUse = this.formData.aiModel || (this.configList.model ? this.configList.model.default : undefined);
+      }
 
       if (this.configList.model) {
         data[this.configList.model.field] = modelToUse;
       }
+
+      // 2. 初始化语言
       if (this.configList.language) {
-        data[this.configList.language.field] = this.configList.language.default;
+        const field = this.configList.language.field;
+        if (isRemember && this.storedPreferences[field] !== undefined) {
+          data[field] = this.storedPreferences[field];
+        } else {
+          data[field] = this.configList.language.default;
+        }
       }
+
+      // 3. 初始化固定配置
       if (this.configList.fixedSetting) {
         this.configList.fixedSetting.forEach(item => {
-          data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+          if (isRemember && this.storedPreferences[item.field] !== undefined) {
+            data[item.field] = item.type === 'number' ? Number(this.storedPreferences[item.field]) : this.storedPreferences[item.field];
+          } else {
+            data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+          }
         });
       }
+
+      // 4. 初始化动态配置
       if (this.configList.setting && modelToUse && this.configList.setting[modelToUse]) {
         this.configList.setting[modelToUse].forEach(item => {
-          data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+          if (isRemember && this.storedPreferences[item.field] !== undefined) {
+            data[item.field] = item.type === 'number' ? Number(this.storedPreferences[item.field]) : this.storedPreferences[item.field];
+          } else {
+            data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+          }
         });
       }
       this.formData = { ...data };
     },
     async handleSubmit() {
       if (!this.validateApiKey()) return;
-      
+    // 保存记忆设置 (使用 localStorage)
+      if (this.memoryMode === 'remember') {
+        try {
+          localStorage.setItem('FEIYU_PLUG_MEMORY_MODE', 'remember');
+          localStorage.setItem('FEIYU_PLUG_PREFERENCES', JSON.stringify(this.formData));
+        } catch (err) {
+          console.error('Save memory settings error:', err);
+        }
+      }
       // 在这里增加一个判断，判断是否有数据表权限，没有的话提示用户没有此多为表格的权限
       try {
         const hasPermission = await bitable.base.isEditable();
@@ -659,6 +784,7 @@ export default {
       } catch (error) {
         console.error('Check permission error:', error);
       }
+
 
 
       if (this.submitting) return;
@@ -1423,6 +1549,210 @@ export default {
     width: 100%;
   }
 }
+/* 自定义弹窗动画 */
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-fade-enter-from, .modal-fade-leave-to {
+  opacity: 0;
+  .custom-modal-container {
+    transform: scale(0.9) translateY(20px);
+  }
+}
+
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.custom-modal-container {
+  width: 240px;
+  background-color: transparent; /* 移除容器背景色，防止圆角处白边泄露 */
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0); /* 开启硬件加速，优化圆角渲染 */
+}
+
+.kefu-modal-content {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.kefu-header {
+  background: linear-gradient(135deg, #722ed1 0%, #b37feb 100%);
+  padding: 16px 12px;
+  text-align: center;
+  position: relative;
+  color: #fff;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+  margin: -1px -1px 0 -1px; /* 负边距微调，确保完全覆盖可能存在的白边 */
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
+  }
+}
+
+.kefu-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.kefu-subtitle {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.8;
+  letter-spacing: 0.2px;
+}
+
+.kefu-close-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #fff;
+  opacity: 0.7;
+  transition: all 0.2s;
+  z-index: 10;
+
+  &:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+  }
+}
+
+.kefu-body {
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+}
+
+.qr-code-container {
+  width: 160px;
+  height: 160px;
+  padding: 6px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(114, 46, 209, 0.06);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f0f0f0;
+  position: relative;
+  overflow: hidden;
+
+  .scanning-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #722ed1, transparent);
+    box-shadow: 0 0 8px #722ed1;
+    animation: scanning 3s infinite linear;
+    z-index: 1;
+  }
+}
+
+@keyframes scanning {
+  0% { top: 0; }
+  50% { top: 100%; }
+  100% { top: 0; }
+}
+
+.qr-code-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.kefu-tip {
+  font-size: 13px;
+  color: #1d2129;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.wechat-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: #f7f8fa;
+  border: 1px solid #e5e6eb;
+  border-radius: 20px;
+  color: #4e5969;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f2f3f5;
+    border-color: #07C160;
+    color: #07C160;
+  }
+
+  .wechat-icon {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* 联系客服悬浮图标 */
+.kefu-float-icon {
+  position: fixed;
+  right: 12px;
+  top: 155px;
+  width: 32px;
+  height: 32px;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 999;
+  color: #722ed1;
+  transition: all 0.3s;
+  border: 1px solid #f0f0f0;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .arco-icon {
+    font-size: 18px;
+  }
+}
 </style>
 <style lang="scss" scoped>
 .feiyu-home {
@@ -1526,7 +1856,7 @@ export default {
 .api-key-section {
   background: var(--custom-card-bg);
   border-radius: 12px;
-  padding: 16px 20px;
+  padding: 12px 12px;
   margin-bottom: 16px;
   box-shadow: var(--custom-shadow);
   border: 1px solid var(--custom-border-color);
@@ -1705,6 +2035,7 @@ export default {
       &.icon-1 { background: rgba(114, 46, 209, 0.1); color: #722ED1; }
       &.icon-2 { background: rgba(255, 125, 0, 0.1); color: #FF7D00; }
       &.icon-3 { background: rgba(0, 180, 42, 0.1); color: #00B42A; }
+      &.icon-history { background: rgba(146, 84, 222, 0.1); color: #9254DE; }
     }
 
     .item-info {
@@ -1724,6 +2055,63 @@ export default {
     display: flex;
     justify-content: flex-end;
     max-width: 58%;
+    min-width: 0;
+
+    /* 自定义分段控制 */
+    .custom-segmented-control {
+      display: flex;
+      background: #f1f2f5;
+      padding: 2px;
+      border-radius: 6px;
+      width: 100%;
+      /* 移除 max-width 限制，使其宽度与 item-right 容器（58%）保持一致 */
+      height: 32px; /* 与上方输入框/下拉框高度保持一致 */
+      box-sizing: border-box;
+      user-select: none;
+      position: relative; /* 为滑块定位 */
+
+      .segmented-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: calc(50% - 2px);
+        height: calc(100% - 4px);
+        background: #fff;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+        z-index: 1;
+
+        &.once {
+          transform: translateX(100%);
+        }
+      }
+
+      .segmented-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px; /* 与上方选项文字大小保持一致 */
+        cursor: pointer;
+        border-radius: 4px;
+        transition: color 0.3s ease;
+        color: #4e5969;
+        white-space: nowrap;
+        height: 100%;
+        position: relative;
+        z-index: 2; /* 确保文字在滑块上方 */
+
+        &.active {
+          color: #722ed1;
+          font-weight: 500;
+        }
+
+        &:hover:not(.active) {
+          background: rgba(0, 0, 0, 0.03);
+        }
+      }
+    }
     
     .minimal-select {
       width: 100%;
