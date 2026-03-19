@@ -2,7 +2,7 @@
   <div class="feiyu-home">
     <!-- 程序运行状态横幅 -->
     <transition name="fade">
-      <div v-if="runningTaskCount === 0" class="running-banner">
+      <div v-if="runningTaskCount > 0" class="running-banner">
         <div class="banner-content">
           <icon-info-circle-fill class="banner-icon" />
           <div class="banner-text">
