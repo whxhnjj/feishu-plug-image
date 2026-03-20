@@ -132,7 +132,7 @@
         <!-- 模型选项 -->
         <div v-if="configList.model" class="form-card-item">
           <div class="item-left">
-            <span class="item-icon icon-0"><icon-palette /></span>
+            <span class="item-icon icon-fixed-0"><icon-palette /></span>
             <div class="item-info">
               <span class="label-text">{{ configList.model.title }}</span>
             </div>
@@ -171,7 +171,7 @@
         <!-- 语言选项 -->
         <div v-if="configList.language" class="form-card-item">
           <div class="item-left">
-            <span class="item-icon icon-1"><icon-language /></span>
+            <span class="item-icon icon-fixed-1"><icon-language /></span>
             <div class="item-info">
               <span class="label-text">{{ configList.language.title }}</span>
             </div>
@@ -257,7 +257,7 @@
         <!-- 选项记忆 -->
         <div class="form-card-item">
           <div class="item-left">
-            <span class="item-icon icon-history">
+            <span class="item-icon icon-fixed-2">
                <icon-history />
             </span>
             <div class="item-info">
@@ -2037,6 +2037,28 @@ export default {
       &.icon-1 { background: rgba(114, 46, 209, 0.1); color: #722ED1; }
       &.icon-2 { background: rgba(255, 125, 0, 0.1); color: #FF7D00; }
       &.icon-3 { background: rgba(0, 180, 42, 0.1); color: #00B42A; }
+      &.icon-4 { background: rgba(245, 63, 63, 0.1); color: #F53F3F; }
+      &.icon-5 { background: rgba(19, 194, 194, 0.1); color: #13C2C2; }
+      &.icon-6 { background: rgba(250, 173, 20, 0.1); color: #FAAD14; }
+      &.icon-7 { background: rgba(128, 90, 213, 0.1); color: #805AD5; }
+      &.icon-8 { background: rgba(82, 196, 26, 0.1); color: #52C41A; }
+      &.icon-9 { background: rgba(24, 144, 255, 0.1); color: #1890FF; }
+      &.icon-10 { background: rgba(135, 208, 104, 0.1); color: #87D068; }
+      &.icon-11 { background: rgba(64, 169, 255, 0.1); color: #40A9FF; }
+      &.icon-12 { background: rgba(250, 140, 22, 0.1); color: #FA8C16; }
+      &.icon-13 { background: rgba(111, 66, 193, 0.1); color: #6F42C1; }
+      &.icon-14 { background: rgba(47, 84, 235, 0.1); color: #2F54EB; }
+      &.icon-15 { background: rgba(105, 219, 124, 0.1); color: #69DB7C; }
+      &.icon-16 { background: rgba(250, 219, 20, 0.1); color: #FADB14; }
+      &.icon-17 { background: rgba(235, 47, 150, 0.1); color: #EB2F96; }
+      &.icon-18 { background: rgba(26, 173, 196, 0.1); color: #1AADC4; }
+      &.icon-19 { background: rgba(153, 84, 187, 0.1); color: #9954BB; }
+      
+      /* Fixed configuration items - using completely unique colors */
+      &.icon-fixed-0 { background: rgba(255, 107, 107, 0.1); color: #FF6B6B; }
+      &.icon-fixed-1 { background: rgba(77, 171, 247, 0.1); color: #4DABF7; }
+      &.icon-fixed-2 { background: rgba(130, 201, 30, 0.1); color: #82C91E; }
+      
       &.icon-history { background: rgba(146, 84, 222, 0.1); color: #9254DE; }
     }
 
