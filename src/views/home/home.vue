@@ -2021,6 +2021,8 @@ export default {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
+    min-width: 0;
 
     .item-icon {
       width: 40px;
@@ -2041,11 +2043,16 @@ export default {
     .item-info {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      min-width: 0;
       
       .label-text {
         font-size: 15px;
         font-weight: 500;
         color: var(--custom-text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
