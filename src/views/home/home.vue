@@ -14,7 +14,7 @@
     </transition>
 
     <!-- 轮播广告位 -->
-    <div class="banner-section">
+    <div class="banner-section" v-if="!isBannerHidden">
       <a-skeleton v-if="bannerLoading" :animation="true">
         <a-skeleton-shape shape="rect" style="width: 100%; height: 140px; border-radius: 12px;" />
       </a-skeleton>
@@ -50,6 +50,9 @@
         <div class="header-right">
            <a-button v-if="!isEditingApiKey" type="text" size="small" @click="startEditApiKey">
              <template #icon><icon-edit /></template>
+           </a-button>
+           <a-button type="text" size="small" @click="showSettingsModal = true">
+             <template #icon><icon-settings /></template>
            </a-button>
         </div>
       </div>
@@ -285,7 +288,7 @@
 
     <!-- 任务运行状态指示器 -->
     <div class="task-status-indicator" 
-         v-if="runningTaskCount > 0"
+         v-if="runningTaskCount > 0 && !isTaskStatusHidden"
          ref="indicatorRef"
          :style="indicatorStyle"
          @mousedown="handleDragStart"
@@ -332,7 +335,7 @@
     </div>
 
     <!-- 联系客服悬浮图标 -->
-    <div class="kefu-float-icon" @click="handleKefuClick">
+    <div v-if="!isKefuIconRemoved" class="kefu-float-icon" @click="handleKefuClick">
       <icon-customer-service />
     </div>
 
@@ -358,10 +361,106 @@
                 </svg>
                 <span>微信扫一扫添加</span>
               </div>
-              <div v-if="!isKefuIconRemoved" class="remove-float-btn" @click="removeKefuIcon">
-                <icon-close />
-                <span>移除悬浮图标</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 自定义系统设置弹窗 -->
+    <transition name="modal-fade">
+      <div v-if="showSettingsModal" class="custom-modal-overlay" @click.self="showSettingsModal = false">
+        <div class="custom-modal-container" style="width: 280px;">
+          <div class="settings-modal-content">
+            <div class="settings-header">
+              <div class="header-left-box">
+                <div class="header-icon-bg">
+                  <icon-settings style="font-size: 18px; color: #fff;" />
+                </div>
+                <div class="header-text">
+                  <div class="settings-title">系统设置</div>
+                  <div class="settings-subtitle">System Settings</div>
+                </div>
               </div>
+              <icon-close class="settings-close-icon" @click="showSettingsModal = false" />
+            </div>
+            
+            <div class="settings-body">
+              <div class="settings-group">
+                <div class="group-title">常规设置</div>
+                <div class="settings-card">
+                  <div class="settings-row">
+                    <div class="row-info">
+                      <div class="row-label">推广横幅</div>
+                      <div class="row-desc">显示顶部推广横幅及广告</div>
+                    </div>
+                    <a-switch 
+                      :model-value="!isBannerHidden" 
+                      @change="toggleBanner"
+                      type="round"
+                    >
+                      <template #checked>开启</template>
+                      <template #unchecked>关闭</template>
+                    </a-switch>
+                  </div>
+                  <div class="settings-row">
+                    <div class="row-info">
+                      <div class="row-label">任务状态</div>
+                      <div class="row-desc">显示任务运行状态指示器</div>
+                    </div>
+                    <a-switch 
+                      :model-value="!isTaskStatusHidden" 
+                      @change="toggleTaskStatus"
+                      type="round"
+                    >
+                      <template #checked>开启</template>
+                      <template #unchecked>关闭</template>
+                    </a-switch>
+                  </div>
+                  <div class="settings-row">
+                    <div class="row-info">
+                      <div class="row-label">显示客服图标</div>
+                      <div class="row-desc">在页面右侧显示悬浮图标</div>
+                    </div>
+                    <a-switch 
+                      :model-value="!isKefuIconRemoved" 
+                      @change="toggleKefuIcon"
+                      type="round"
+                    >
+                      <template #checked>开启</template>
+                      <template #unchecked>关闭</template>
+                    </a-switch>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <div class="group-title">支持</div>
+                <div class="settings-card">
+                  <div class="settings-row" @click="handleWebUrlClick" style="cursor: pointer;">
+                    <div class="row-info">
+                      <div class="row-label">查看官网</div>
+                      <div class="row-desc">访问我们的官方网站</div>
+                    </div>
+                    <icon-arrow-right style="color: #86909c; font-size: 14px;" />
+                  </div>
+                  <div class="settings-row" @click="handleHelpClick" style="cursor: pointer;">
+                    <div class="row-info">
+                      <div class="row-label">帮助中心</div>
+                      <div class="row-desc">查看使用教程及常见问题</div>
+                    </div>
+                    <icon-arrow-right style="color: #86909c; font-size: 14px;" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 预留后续扩展槽位 -->
+              <!-- <div class="settings-group">
+                <div class="group-title">其他设置</div>
+                <div class="settings-card">
+                   ...
+                </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -402,7 +501,8 @@ import {
   IconCopy,
   IconCustomerService,
   IconMessage,
-  IconHistory
+  IconHistory,
+  IconSettings
 } from '@arco-design/web-vue/es/icon';
 import { AddTask, GetTaskStatus } from "@api/api/index";
 export default {
@@ -427,13 +527,17 @@ export default {
     IconCopy,
     IconCustomerService,
     IconMessage,
-    IconHistory
+    IconHistory,
+    IconSettings
   },
   data() {
     return {
       showKefuModal: false,
+      showSettingsModal: false,
       memoryMode: 'once', // 'once' or 'remember'
-      isKefuIconRemoved: false,
+      isKefuIconRemoved: localStorage.getItem('FEIYU_PLUG_IS_KEFU_ICON_REMOVED') === 'true',
+      isTaskStatusHidden: localStorage.getItem('FEIYU_PLUG_IS_TASK_STATUS_HIDDEN') === 'true',
+      isBannerHidden: localStorage.getItem('FEIYU_PLUG_IS_BANNER_HIDDEN') === 'true',
       storedPreferences: null,
       configList: [],
       loading: false,
@@ -546,19 +650,26 @@ export default {
     handleHelpClick() {
       window.open('https://hey-fish.feishu.cn/docx/X6AadbCE9oDXoyxAgP6cs24on5a?from=from_copylink', '_blank');
     },
-    handleKefuClick() {
-      // Check if kefu icon still exists before showing modal
-      const kefuIcon = document.querySelector('.kefu-float-icon');
-      this.isKefuIconRemoved = !kefuIcon;
-      this.showKefuModal = true;
-    },
-    removeKefuIcon() {
-      const kefuIcon = document.querySelector('.kefu-float-icon');
-      if (kefuIcon) {
-        kefuIcon.remove();
-        this.isKefuIconRemoved = true;
+    handleWebUrlClick() {
+      if (this.webUrl) {
+        window.open(this.webUrl, '_blank');
       }
     },
+    handleKefuClick() {
+      this.showKefuModal = true;
+    },
+    toggleKefuIcon(val) {
+       this.isKefuIconRemoved = !val;
+       localStorage.setItem('FEIYU_PLUG_IS_KEFU_ICON_REMOVED', this.isKefuIconRemoved);
+     },
+     toggleTaskStatus(val) {
+        this.isTaskStatusHidden = !val;
+        localStorage.setItem('FEIYU_PLUG_IS_TASK_STATUS_HIDDEN', this.isTaskStatusHidden);
+      },
+      toggleBanner(val) {
+        this.isBannerHidden = !val;
+        localStorage.setItem('FEIYU_PLUG_IS_BANNER_HIDDEN', this.isBannerHidden);
+      },
     getImgSrc(value) {
       if (!value) return new URL('./img/logo.svg', import.meta.url).href;
       const lowerValue = value.toLowerCase();
@@ -1734,38 +1845,6 @@ export default {
   }
 }
 
-.remove-float-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background-color: #fff4e6;
-  border: 1px solid #ffd8a8;
-  border-radius: 20px;
-  color: #fa8c16;
-  font-size: 11px;
-  font-weight: 500;
-  transition: all 0.2s;
-  cursor: pointer;
-  margin-top: 12px;
-
-  &:hover {
-    background-color: #ffe7ba;
-    border-color: #ffa940;
-    color: #fa541c;
-  }
-
-  .arco-icon {
-    font-size: 12px;
-  }
-
-  .wechat-icon {
-    flex-shrink: 0;
-    width: 12px;
-    height: 12px;
-  }
-}
-
 /* 联系客服悬浮图标 */
 .kefu-float-icon {
   position: fixed;
@@ -1792,6 +1871,124 @@ export default {
 
   .arco-icon {
     font-size: 18px;
+  }
+}
+
+/* 系统设置弹窗专属样式 */
+.settings-modal-content {
+  background: #f4f7f9;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-header {
+  padding: 20px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+
+  .header-left-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-icon-bg {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #165dff 0%, #4080ff 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(22, 93, 255, 0.2);
+  }
+
+  .header-text {
+    .settings-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1d2129;
+      line-height: 1.2;
+    }
+    .settings-subtitle {
+      font-size: 10px;
+      color: #86909c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+  }
+
+  .settings-close-icon {
+    cursor: pointer;
+    font-size: 16px;
+    color: #86909c;
+    transition: all 0.2s;
+    &:hover {
+      color: #1d2129;
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.settings-body {
+  padding: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+
+  .settings-group {
+    margin-bottom: 20px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .group-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4e5969;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  .settings-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 4px 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  }
+
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f7f8fa;
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .row-info {
+      flex: 1;
+      margin-right: 12px;
+    }
+
+    .row-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1d2129;
+    }
+
+    .row-desc {
+      font-size: 11px;
+      color: #86909c;
+      margin-top: 2px;
+    }
   }
 }
 </style>
