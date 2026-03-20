@@ -358,6 +358,10 @@
                 </svg>
                 <span>微信扫一扫添加</span>
               </div>
+              <div v-if="!isKefuIconRemoved" class="remove-float-btn" @click="removeKefuIcon">
+                <icon-close />
+                <span>移除悬浮图标</span>
+              </div>
             </div>
           </div>
         </div>
@@ -429,6 +433,7 @@ export default {
     return {
       showKefuModal: false,
       memoryMode: 'once', // 'once' or 'remember'
+      isKefuIconRemoved: false,
       storedPreferences: null,
       configList: [],
       loading: false,
@@ -542,7 +547,17 @@ export default {
       window.open('https://hey-fish.feishu.cn/docx/X6AadbCE9oDXoyxAgP6cs24on5a?from=from_copylink', '_blank');
     },
     handleKefuClick() {
+      // Check if kefu icon still exists before showing modal
+      const kefuIcon = document.querySelector('.kefu-float-icon');
+      this.isKefuIconRemoved = !kefuIcon;
       this.showKefuModal = true;
+    },
+    removeKefuIcon() {
+      const kefuIcon = document.querySelector('.kefu-float-icon');
+      if (kefuIcon) {
+        kefuIcon.remove();
+        this.isKefuIconRemoved = true;
+      }
     },
     getImgSrc(value) {
       if (!value) return new URL('./img/logo.svg', import.meta.url).href;
@@ -1716,6 +1731,32 @@ export default {
     background-color: #f2f3f5;
     border-color: #07C160;
     color: #07C160;
+  }
+}
+
+.remove-float-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: #fff4e6;
+  border: 1px solid #ffd8a8;
+  border-radius: 20px;
+  color: #fa8c16;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+  margin-top: 12px;
+
+  &:hover {
+    background-color: #ffe7ba;
+    border-color: #ffa940;
+    color: #fa541c;
+  }
+
+  .arco-icon {
+    font-size: 12px;
   }
 
   .wechat-icon {
