@@ -22,4 +22,6 @@
 //     ? config.production
 //     : config.development;
 
-export default 'https://server-feishu.feiyushuju.com';
+// 测试版  'http://server-dev.feiyushentu.com';
+
+export default 'http://server.feiyushentu.com';
