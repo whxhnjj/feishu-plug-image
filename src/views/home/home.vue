@@ -472,9 +472,9 @@
 <script>
 import { bitable, FieldType } from '@lark-base-open/js-sdk';
 const ui = bitable.ui;
-// import { GetPlugSelectField } from '@api/api/common.js';
-// import { GetPlugAd } from '@api/api/common.js';
-import jsonData from './data.json';
+import { GetPlugSelectField } from '@api/api/common.js';
+import { GetPlugAd } from '@api/api/common.js';
+// import jsonData from './data.json';
 import zh from './locales/zh.json';
 import en from './locales/en.json';
 import jp from './locales/jp.json';
@@ -781,7 +781,7 @@ export default {
           }
         }
 
-        // const res = await GetPlugSelectField();
+        const res = await GetPlugSelectField();
         //  const res = jsonData;
         if (res.code === 200) {
           this.configList = res.data || [];

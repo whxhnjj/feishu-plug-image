@@ -24,4 +24,4 @@
 
 // 测试版  'http://server-dev.feiyushentu.com';
 
-export default 'http://server.feiyushentu.com';
+export default 'https://server.feiyushentu.com'; //'http://server.feiyushentu.com';
