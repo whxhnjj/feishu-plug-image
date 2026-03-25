@@ -18,16 +18,11 @@
       <a-skeleton v-if="bannerLoading" :animation="true">
         <a-skeleton-shape shape="rect" style="width: 100%; height: 140px; border-radius: 12px;" />
       </a-skeleton>
-      <a-carousel
-        v-else-if="bannerList.length > 0"
-        class="custom-carousel"
-        :auto-play="true"
-        indicator-type="slider"
-        show-arrow="hover"
-        style="width: 100%; height: 140px; border-radius: 12px; overflow: hidden;"
-      >
+      <a-carousel v-else-if="bannerList.length > 0" class="custom-carousel" :auto-play="true" indicator-type="slider"
+        show-arrow="hover" style="width: 100%; height: 140px; border-radius: 12px; overflow: hidden;">
         <a-carousel-item v-for="(item, index) in bannerList" :key="index">
-          <div class="banner-item" @click="handleBannerClick(item.url)" :style="{ cursor: item.url ? 'pointer' : 'default' }">
+          <div class="banner-item" @click="handleBannerClick(item.url)"
+            :style="{ cursor: item.url ? 'pointer' : 'default' }">
             <img :src="item.image" class="banner-img" />
           </div>
         </a-carousel-item>
@@ -48,45 +43,34 @@
           <a v-if="webUrl" :href="webUrl" target="_blank" class="link-text">{{ t('getApiKey') }}</a>
         </div>
         <div class="header-right">
-           <a-button v-if="!isEditingApiKey" type="text" size="small" @click="startEditApiKey">
-             <template #icon><icon-edit /></template>
-           </a-button>
-           <a-button type="text" size="small" @click="showSettingsModal = true">
-             <template #icon><icon-settings /></template>
-           </a-button>
+          <a-button v-if="!isEditingApiKey" type="text" size="small" @click="startEditApiKey">
+            <template #icon><icon-edit /></template>
+          </a-button>
+          <a-button type="text" size="small" @click="showSettingsModal = true">
+            <template #icon><icon-settings /></template>
+          </a-button>
         </div>
       </div>
       <div class="section-body">
-        <a-input-password 
-          v-if="!isEditingApiKey"
-          v-model="apiKey" 
-          :placeholder="t('enterApiKey')" 
-          class="api-input"
-          disabled
-        >
+        <a-input-password v-if="!isEditingApiKey" v-model="apiKey" :placeholder="t('enterApiKey')" class="api-input"
+          disabled>
         </a-input-password>
-        <a-input-password 
-          v-else
-          v-model="tempApiKey" 
-          :placeholder="t('enterApiKey')" 
-          class="api-input"
-          allow-clear
-        >
+        <a-input-password v-else v-model="tempApiKey" :placeholder="t('enterApiKey')" class="api-input" allow-clear>
         </a-input-password>
-        
+
         <transition name="fade">
           <div class="save-btn-area" v-if="isEditingApiKey">
-             <a-button class="btn-cancel" @click="cancelEditApiKey">{{ t('cancel') }}</a-button>
-             <a-button class="btn-save" type="primary" status="success" @click="saveApiKey">
-               <template #icon><icon-save /></template>
-               {{ t('saveConfig') }}
-             </a-button>
+            <a-button class="btn-cancel" @click="cancelEditApiKey">{{ t('cancel') }}</a-button>
+            <a-button class="btn-save" type="primary" status="success" @click="saveApiKey">
+              <template #icon><icon-save /></template>
+              {{ t('saveConfig') }}
+            </a-button>
           </div>
         </transition>
       </div>
     </div>
 
-         
+
     <!-- 数据选择 -->
     <div class="api-key-section">
       <div class="section-header">
@@ -95,10 +79,11 @@
           <span class="section-title">{{ t('dataSelection') }}</span>
         </div>
         <div class="header-right">
-          <a-button type="primary" size="mini" class="btn-copy-template"  style="margin-right: 8px;" @click="handleAddTable" :loading="isSelectingData">
+          <a-button type="primary" size="mini" class="btn-copy-template" style="margin-right: 8px;"
+            @click="handleAddTable" :loading="isSelectingData">
             <template #icon><icon-plus /></template>
-             {{ t('addDataTable') }}
-           </a-button>
+            {{ t('addDataTable') }}
+          </a-button>
           <a-button type="outline" size="mini" @click="handleUseTemplate">
             <template #icon><icon-plus /></template>
             {{ t('createTable') }}
@@ -106,29 +91,29 @@
         </div>
       </div>
       <div class="section-body">
-         <a-button type="primary" long @click="handleSelectData" :loading="isSelectingData" :disabled="isSelectingData">
-           {{ t('selectData') }}
-         </a-button>
-         
-         <div class="selected-count" :class="{ 'has-data': recordIdList.length > 0 }">
-            <div class="count-badge">
-               <icon-check-circle-fill v-if="recordIdList.length > 0" />
-               <icon-info-circle-fill v-else />
-            </div>
-            <span class="count-text">
-              {{ recordIdList.length > 0 ? t('selectedCount', { count: recordIdList.length }) : t('noDataSelected') }}
-            </span>
-         </div>
+        <a-button type="primary" long @click="handleSelectData" :loading="isSelectingData" :disabled="isSelectingData">
+          {{ t('selectData') }}
+        </a-button>
+
+        <div class="selected-count" :class="{ 'has-data': recordIdList.length > 0 }">
+          <div class="count-badge">
+            <icon-check-circle-fill v-if="recordIdList.length > 0" />
+            <icon-info-circle-fill v-else />
+          </div>
+          <span class="count-text">
+            {{ recordIdList.length > 0 ? t('selectedCount', { count: recordIdList.length }) : t('noDataSelected') }}
+          </span>
+        </div>
       </div>
     </div>
 
     <!-- 主要内容区 -->
     <div class="content-body">
       <a-skeleton v-if="loading" :animation="true">
-        <a-space direction="vertical" :style="{width:'100%'}" size="large">
-           <a-skeleton-line :rows="3" />
-           <a-skeleton-line :rows="3" />
-           <a-skeleton-line :rows="3" />
+        <a-space direction="vertical" :style="{ width: '100%' }" size="large">
+          <a-skeleton-line :rows="3" />
+          <a-skeleton-line :rows="3" />
+          <a-skeleton-line :rows="3" />
         </a-space>
       </a-skeleton>
       <div v-else class="form-list">
@@ -141,12 +126,13 @@
             </div>
           </div>
           <div class="item-right">
-            <a-select v-model="formData[configList.model.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect')"
-             :trigger-props="{ autoFitPopupMinWidth: true }">
+            <a-select v-model="formData[configList.model.field]" class="minimal-select" allow-search
+              :placeholder="t('pleaseSelect')" :trigger-props="{ autoFitPopupMinWidth: true }">
               <template #label="{ data }">
                 <div v-if="data" class="model-option-left" style="gap: 4px;">
                   <div class="model-icon-box" style="width: 20px; height: 20px; border-radius: 4px;">
-                    <img :src="getImgSrc(data.value)" alt="icon" class="model-icon-img" style="width: 12px; height: 12px;" />
+                    <img :src="getImgSrc(data.value)" alt="icon" class="model-icon-img"
+                      style="width: 12px; height: 12px;" />
                   </div>
                   <span class="model-name" style="font-size: 13px;">{{ data.label }}</span>
                 </div>
@@ -180,78 +166,75 @@
             </div>
           </div>
           <div class="item-right">
-            <a-select v-model="formData[configList.language.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect')"
-             :trigger-props="{ autoFitPopupMinWidth: true }">
-              <a-option v-for="opt in configList.language.value" :key="opt.value" :value="opt.value" :disabled="isLanguageDisabled(opt.value)">{{ opt.name }}</a-option>
+            <a-select v-model="formData[configList.language.field]" class="minimal-select" allow-search
+              :placeholder="t('pleaseSelect')" :trigger-props="{ autoFitPopupMinWidth: true }">
+              <a-option v-for="opt in configList.language.value" :key="opt.value" :value="opt.value"
+                :disabled="isLanguageDisabled(opt.value)">{{ opt.name }}</a-option>
             </a-select>
           </div>
         </div>
 
         <!-- setting 动态配置 -->
-        <div v-if="currentModelSettings" v-for="(item, index) in currentModelSettings" :key="item.field" class="form-card-item">
+        <div v-if="currentModelSettings" v-for="(item, index) in currentModelSettings" :key="item.field"
+          class="form-card-item">
           <div class="item-left">
             <span class="item-icon" :class="`icon-${(index + 2) % 4}`">
-               <component :is="getIcon(index + 2,item.title)" />
+              <component :is="getIcon(index + 2, item.title)" />
             </span>
             <div class="item-info">
               <span class="label-text">{{ item.title }}</span>
             </div>
           </div>
           <div class="item-right">
-            <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect') + ' ' + item.title"
-             :trigger-props="{ autoFitPopupMinWidth: true }">
+            <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search
+              :placeholder="t('pleaseSelect') + ' ' + item.title" :trigger-props="{ autoFitPopupMinWidth: true }">
               <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value">{{ opt.name }}</a-option>
             </a-select>
-            <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value.min" :max="item.value.max" />
-            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom" content-class="text-input-popover">
+            <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]"
+              :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value.min" :max="item.value.max" />
+            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom"
+              content-class="text-input-popover">
               <div class="text-display-trigger">
                 <span v-if="formData[item.field]" class="text-value">{{ formData[item.field] }}</span>
                 <span v-else class="placeholder">{{ t('pleaseEnter') + ' ' + item.title }}</span>
               </div>
               <template #content>
-                <a-textarea
-                  v-model="formData[item.field]"
-                  :placeholder="t('pleaseEnter') + ' ' + item.title"
-                  :max-length="item.value?.max"
-                  allow-clear
-                  show-word-limit
-                  :auto-size="{ minRows: 3, maxRows: 6 }"
-                />
+                <a-textarea v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title"
+                  :max-length="item.value?.max" allow-clear show-word-limit :auto-size="{ minRows: 3, maxRows: 6 }" />
               </template>
             </a-popover>
           </div>
         </div>
 
         <!-- fixedSetting 固定配置 -->
-        <div v-if="configList.fixedSetting" v-for="(item, index) in configList.fixedSetting" :key="item.field" class="form-card-item">
+        <div v-if="configList.fixedSetting" v-for="(item, index) in configList.fixedSetting" :key="item.field"
+          class="form-card-item">
           <div class="item-left">
-            <span class="item-icon" :class="`icon-${(index + 2 + (currentModelSettings ? currentModelSettings.length : 0)) % 4}`">
-               <component :is="getIcon(index + 2 + (currentModelSettings ? currentModelSettings.length : 0),item.title)" />
+            <span class="item-icon"
+              :class="`icon-${(index + 2 + (currentModelSettings ? currentModelSettings.length : 0)) % 4}`">
+              <component
+                :is="getIcon(index + 2 + (currentModelSettings ? currentModelSettings.length : 0), item.title)" />
             </span>
             <div class="item-info">
               <span class="label-text">{{ item.title }}</span>
             </div>
           </div>
           <div class="item-right">
-            <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search :placeholder="t('pleaseSelect') + ' ' + item.title"
-             :trigger-props="{ autoFitPopupMinWidth: true }">
+            <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search
+              :placeholder="t('pleaseSelect') + ' ' + item.title" :trigger-props="{ autoFitPopupMinWidth: true }">
               <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value">{{ opt.name }}</a-option>
             </a-select>
-            <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value?.min" :max="item.value?.max" />
-            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom" content-class="text-input-popover">
+            <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]"
+              :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value?.min" :max="item.value?.max" />
+            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom"
+              content-class="text-input-popover">
               <div class="text-display-trigger">
                 <span v-if="formData[item.field]" class="text-value">{{ formData[item.field] }}</span>
                 <span v-else class="placeholder">{{ t('pleaseEnter') + ' ' + item.title }}</span>
               </div>
               <template #content>
-                <a-textarea
-                  v-model="formData[item.field]"
-                  :placeholder="t('pleaseEnter') + ' ' + item.title"
-                  :max-length="item.value?.max"
-                  allow-clear
-                  show-word-limit
-                  :auto-size="{ minRows: 3, maxRows: 6 }"
-                />
+                <a-textarea v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title"
+                  :max-length="item.value?.max" allow-clear show-word-limit :auto-size="{ minRows: 3, maxRows: 6 }" />
               </template>
             </a-popover>
           </div>
@@ -261,7 +244,7 @@
         <div class="form-card-item">
           <div class="item-left">
             <span class="item-icon icon-fixed-2">
-               <icon-history />
+              <icon-history />
             </span>
             <div class="item-info">
               <span class="label-text">选项记忆</span>
@@ -270,16 +253,11 @@
           <div class="item-right">
             <div class="custom-segmented-control">
               <div class="segmented-slider" :class="memoryMode"></div>
-              <div 
-                class="segmented-item" 
-                :class="{ active: memoryMode === 'remember' }"
-                @click="memoryMode = 'remember'"
-              >记住选择</div>
-              <div 
-                class="segmented-item" 
-                :class="{ active: memoryMode === 'once' }"
-                @click="memoryMode = 'once'"
-              >仅本次</div>
+              <div class="segmented-item" :class="{ active: memoryMode === 'remember' }"
+                @click="memoryMode = 'remember'">
+                记住选择</div>
+              <div class="segmented-item" :class="{ active: memoryMode === 'once' }" @click="memoryMode = 'once'">仅本次
+              </div>
             </div>
           </div>
         </div>
@@ -287,18 +265,13 @@
     </div>
 
     <!-- 任务运行状态指示器 -->
-    <div class="task-status-indicator" 
-         v-if="runningTaskCount > 0 && !isTaskStatusHidden"
-         ref="indicatorRef"
-         :style="indicatorStyle"
-         @mousedown="handleDragStart"
-         @touchstart="handleDragStart"
-    >
+    <div class="task-status-indicator" v-if="runningTaskCount > 0 && !isTaskStatusHidden" ref="indicatorRef"
+      :style="indicatorStyle" @mousedown="handleDragStart" @touchstart="handleDragStart">
       <a-tooltip :content="indicatorTooltip" position="left" mini>
-        <div class="indicator-icon" 
-             :class="{ 'is-running': runningTaskCount > 0 && !isPaused, 'is-paused': runningTaskCount > 0 && isPaused }">
-           <icon-sync v-if="!isPaused" :spin="runningTaskCount > 0" />
-           <icon-play-circle v-else />
+        <div class="indicator-icon"
+          :class="{ 'is-running': runningTaskCount > 0 && !isPaused, 'is-paused': runningTaskCount > 0 && isPaused }">
+          <icon-sync v-if="!isPaused" :spin="runningTaskCount > 0" />
+          <icon-play-circle v-else />
         </div>
       </a-tooltip>
     </div>
@@ -318,8 +291,9 @@
               </div>
             </div>
           </a-button> -->
-          
-          <a-button class="btn-submit" :class="{ 'is-loading': submitting }" type="primary" shape="round" @click="handleSubmit">
+
+          <a-button class="btn-submit" :class="{ 'is-loading': submitting }" type="primary" shape="round"
+            @click="handleSubmit">
             <div class="btn-content-inline">
               <icon-loading spin v-if="submitting" />
               <icon-thunderbolt v-else />
@@ -351,13 +325,16 @@
             </div>
             <div class="kefu-body">
               <div class="qr-code-container">
-                <img src="https://ai-banana-1251050854.cos.ap-guangzhou.myqcloud.com/feishu/kefu/kefu.png" alt="客服二维码" class="qr-code-img" />
+                <img src="https://ai-banana-1251050854.cos.ap-guangzhou.myqcloud.com/feishu/kefu/kefu.png" alt="客服二维码"
+                  class="qr-code-img" />
                 <div class="scanning-line"></div>
               </div>
               <div class="kefu-tip">扫描二维码，添加专属客服</div>
               <div class="wechat-btn">
                 <svg viewBox="0 0 1024 1024" width="16" height="16" class="wechat-icon">
-                  <path d="M666.2 438.4c-11.2 0-22.1 1.1-32.6 3.1 1.1-6.1 1.7-12.3 1.7-18.7 0-101.3-116.4-183.4-260-183.4-143.6 0-260 82.1-260 183.4 0 96.3 105.3 175.1 238.8 182.5l-3.8 1.1c-10.1 2.8-19.1 8.8-25.6 17.1l-43.4 55.4c-4.1 5.3-2.1 13 4.4 15.5 2.1 0.8 4.4 0.9 6.6 0.2l76.1-22.9c13.1-3.9 27-4.1 40.2-0.5 21.1 5.7 43.5 8.8 66.7 8.8 11.2 0 22.1-0.7 32.6-2.1-1.1 6.1-1.7 12.3-1.7 18.7 0 84.4 97 152.8 216.7 152.8 119.7 0 216.7-68.4 216.7-152.8 0-84.4-97-152.8-216.7-152.8z m-291.5-51.4c-12.8 0-23.1-10.3-23.1-23.1s10.3-23.1 23.1-23.1 23.1 10.3 23.1 23.1-10.3 23.1-23.1 23.1z m120.3 0c-12.8 0-23.1-10.3-23.1-23.1s10.3-23.1 23.1-23.1 23.1 10.3 23.1 23.1-10.3 23.1-23.1 23.1z m240.6 231.4c-10.6 0-19.3-8.6-19.3-19.3s8.6-19.3 19.3-19.3 19.3 8.6 19.3 19.3-8.6 19.3-19.3 19.3z m100.5 0c-10.6 0-19.3-8.6-19.3-19.3s8.6-19.3 19.3-19.3 19.3 8.6 19.3 19.3-8.6 19.3-19.3 19.3z" fill="#07C160"></path>
+                  <path
+                    d="M666.2 438.4c-11.2 0-22.1 1.1-32.6 3.1 1.1-6.1 1.7-12.3 1.7-18.7 0-101.3-116.4-183.4-260-183.4-143.6 0-260 82.1-260 183.4 0 96.3 105.3 175.1 238.8 182.5l-3.8 1.1c-10.1 2.8-19.1 8.8-25.6 17.1l-43.4 55.4c-4.1 5.3-2.1 13 4.4 15.5 2.1 0.8 4.4 0.9 6.6 0.2l76.1-22.9c13.1-3.9 27-4.1 40.2-0.5 21.1 5.7 43.5 8.8 66.7 8.8 11.2 0 22.1-0.7 32.6-2.1-1.1 6.1-1.7 12.3-1.7 18.7 0 84.4 97 152.8 216.7 152.8 119.7 0 216.7-68.4 216.7-152.8 0-84.4-97-152.8-216.7-152.8z m-291.5-51.4c-12.8 0-23.1-10.3-23.1-23.1s10.3-23.1 23.1-23.1 23.1 10.3 23.1 23.1-10.3 23.1-23.1 23.1z m120.3 0c-12.8 0-23.1-10.3-23.1-23.1s10.3-23.1 23.1-23.1 23.1 10.3 23.1 23.1-10.3 23.1-23.1 23.1z m240.6 231.4c-10.6 0-19.3-8.6-19.3-19.3s8.6-19.3 19.3-19.3 19.3 8.6 19.3 19.3-8.6 19.3-19.3 19.3z m100.5 0c-10.6 0-19.3-8.6-19.3-19.3s8.6-19.3 19.3-19.3 19.3 8.6 19.3 19.3-8.6 19.3-19.3 19.3z"
+                    fill="#07C160"></path>
                 </svg>
                 <span>微信扫一扫添加</span>
               </div>
@@ -384,7 +361,7 @@
               </div>
               <icon-close class="settings-close-icon" @click="showSettingsModal = false" />
             </div>
-            
+
             <div class="settings-body">
               <div class="settings-group">
                 <div class="group-title">常规设置</div>
@@ -394,11 +371,7 @@
                       <div class="row-label">推广横幅</div>
                       <div class="row-desc">显示顶部推广横幅及广告</div>
                     </div>
-                    <a-switch 
-                      :model-value="!isBannerHidden" 
-                      @change="toggleBanner"
-                      type="round"
-                    >
+                    <a-switch :model-value="!isBannerHidden" @change="toggleBanner" type="round">
                       <template #checked>开启</template>
                       <template #unchecked>关闭</template>
                     </a-switch>
@@ -408,11 +381,7 @@
                       <div class="row-label">任务状态</div>
                       <div class="row-desc">显示任务运行状态指示器</div>
                     </div>
-                    <a-switch 
-                      :model-value="!isTaskStatusHidden" 
-                      @change="toggleTaskStatus"
-                      type="round"
-                    >
+                    <a-switch :model-value="!isTaskStatusHidden" @change="toggleTaskStatus" type="round">
                       <template #checked>开启</template>
                       <template #unchecked>关闭</template>
                     </a-switch>
@@ -422,11 +391,7 @@
                       <div class="row-label">显示客服图标</div>
                       <div class="row-desc">在页面右侧显示悬浮图标</div>
                     </div>
-                    <a-switch 
-                      :model-value="!isKefuIconRemoved" 
-                      @change="toggleKefuIcon"
-                      type="round"
-                    >
+                    <a-switch :model-value="!isKefuIconRemoved" @change="toggleKefuIcon" type="round">
                       <template #checked>开启</template>
                       <template #unchecked>关闭</template>
                     </a-switch>
@@ -472,8 +437,7 @@
 <script>
 import { bitable, FieldType } from '@lark-base-open/js-sdk';
 const ui = bitable.ui;
-import { GetPlugSelectField } from '@api/api/common.js';
-import { GetPlugAd } from '@api/api/common.js';
+import { GetPlugSelectField, GetPlugAd } from '@api/api/common.js';
 // import jsonData from './data.json';
 import zh from './locales/zh.json';
 import en from './locales/en.json';
@@ -481,10 +445,10 @@ import jp from './locales/jp.json';
 import './style.css';
 import useAppStore from '@/stores/app';
 import { mapState } from 'pinia';
-import { 
-  IconCloudDownload, 
-  IconEdit, 
-  IconSync, 
+import {
+  IconCloudDownload,
+  IconEdit,
+  IconSync,
   IconThunderbolt,
   IconSave,
   IconClose,
@@ -621,7 +585,7 @@ export default {
               this.formData[item.field] = item.type === 'number' ? Number(item.default) : item.default;
             });
           }
-          
+
           // 检查当前语言是否被新模型支持
           const newModelData = this.configList.model.value.find(m => m.value === newValue);
           if (newModelData && newModelData.excludeLanguage && newModelData.excludeLanguage.includes(this.formData.language)) {
@@ -659,17 +623,17 @@ export default {
       this.showKefuModal = true;
     },
     toggleKefuIcon(val) {
-       this.isKefuIconRemoved = !val;
-       localStorage.setItem('FEIYU_PLUG_IS_KEFU_ICON_REMOVED', this.isKefuIconRemoved);
-     },
-     toggleTaskStatus(val) {
-        this.isTaskStatusHidden = !val;
-        localStorage.setItem('FEIYU_PLUG_IS_TASK_STATUS_HIDDEN', this.isTaskStatusHidden);
-      },
-      toggleBanner(val) {
-        this.isBannerHidden = !val;
-        localStorage.setItem('FEIYU_PLUG_IS_BANNER_HIDDEN', this.isBannerHidden);
-      },
+      this.isKefuIconRemoved = !val;
+      localStorage.setItem('FEIYU_PLUG_IS_KEFU_ICON_REMOVED', this.isKefuIconRemoved);
+    },
+    toggleTaskStatus(val) {
+      this.isTaskStatusHidden = !val;
+      localStorage.setItem('FEIYU_PLUG_IS_TASK_STATUS_HIDDEN', this.isTaskStatusHidden);
+    },
+    toggleBanner(val) {
+      this.isBannerHidden = !val;
+      localStorage.setItem('FEIYU_PLUG_IS_BANNER_HIDDEN', this.isBannerHidden);
+    },
     getImgSrc(value) {
       if (!value) return new URL('./img/logo.svg', import.meta.url).href;
       const lowerValue = value.toLowerCase();
@@ -713,7 +677,7 @@ export default {
         this.estimatedPoints = 0;
         return;
       }
-      
+
       const modelValue = this.formData.aiModel;
       if (!modelValue || !this.configList.model || !this.configList.model.value) {
         this.estimatedPoints = 0;
@@ -733,27 +697,27 @@ export default {
         // 如果没有 tableId，尝试从 selection 获取
         let tableId = this.edit.tableId;
         if (!tableId) {
-           const selection = await bitable.base.getSelection();
-           tableId = selection.tableId;
+          const selection = await bitable.base.getSelection();
+          tableId = selection.tableId;
         }
         if (!tableId) return;
 
         const table = await bitable.base.getTable(tableId);
         const outPutImgNumField = await table.getField('输出图数量');
-        
+
         // 并行获取所有选中行的图片数量
         const promises = this.recordIdList.map(async (rowId) => {
-             const val = await outPutImgNumField.getValue(rowId);
-             // 尝试转换为数字，如果是非数字则为 0
-             const num = parseInt(val?.text || 0, 10);
-             return isNaN(num) ? 0 : num;
+          const val = await outPutImgNumField.getValue(rowId);
+          // 尝试转换为数字，如果是非数字则为 0
+          const num = parseInt(val?.text || 0, 10);
+          return isNaN(num) ? 0 : num;
         });
-        
+
         const nums = await Promise.all(promises);
         totalNum = nums.reduce((a, b) => a + b, 0);
-        
+
         this.estimatedPoints = totalNum * unitPrice;
-        
+
       } catch (e) {
         console.error('Calculate points error:', e);
         this.estimatedPoints = 0;
@@ -764,13 +728,13 @@ export default {
         window.open(url, '_blank');
       }
     },
-    async getPlugSelectField () {
+    async getPlugSelectField() {
       this.loading = true;
       try {
         // 加载记忆设置 (使用 localStorage)
         const savedMode = localStorage.getItem('FEIYU_PLUG_MEMORY_MODE');
         const savedPrefsStr = localStorage.getItem('FEIYU_PLUG_PREFERENCES');
-        
+
         this.memoryMode = 'once'; // 默认值
         if (savedMode === 'remember' && savedPrefsStr) {
           try {
@@ -788,10 +752,10 @@ export default {
           this.webUrl = res?.domain || 'https://feishu.feiyushuju.com';
           this.initForm();
         } else {
-         ui.showToast({
-          toastType: 'error',
-          message: res.msg || '获取配置失败'
-         });
+          ui.showToast({
+            toastType: 'error',
+            message: res.msg || '获取配置失败'
+          });
         }
       } catch (error) {
         ui.showToast({ toastType: 'error', message: '网络错误' });
@@ -799,7 +763,7 @@ export default {
         this.loading = false;
       }
     },
-    async onSubmit () {
+    async onSubmit() {
       const table = await bitable.base.getActiveTable()
       const attachmentField = await table.getField('参考图');
       const selection = await bitable.base.getSelection();
@@ -812,38 +776,38 @@ export default {
     t(key, params = {}) {
       // 优先从配置的语言包取，如果没有则显示key
       let text = this.locales[this.language]?.[key] || key;
-      
+
       // 如果有参数，进行插值替换
       if (params && Object.keys(params).length > 0) {
         Object.keys(params).forEach(k => {
           text = text.split(`{${k}}`).join(params[k]);
         });
       }
-      
+
       return text;
     },
     // 获取动态图标
-    getIcon(index,title) {
-      if (['尺寸比例','尺寸','比例'].includes(title)) {
+    getIcon(index, title) {
+      if (['尺寸比例', '尺寸', '比例'].includes(title)) {
         return 'IconFullscreen';
       }
-      if (['设计风格','设计','风格'].includes(title)) {
+      if (['设计风格', '设计', '风格'].includes(title)) {
         return 'IconBulb';
       }
-      if (['场景偏好','场景','偏好'].includes(title)) {
+      if (['场景偏好', '场景', '偏好'].includes(title)) {
         return 'IconCommon';
       }
-      if (['选项记忆','记忆'].includes(title)) {
+      if (['选项记忆', '记忆'].includes(title)) {
         return 'IconHistory';
       }
-      const icons = ['IconGift', 'IconPalette', 'IconDesktop', 'IconSend','IconHeart','IconLayers'];
+      const icons = ['IconGift', 'IconPalette', 'IconDesktop', 'IconSend', 'IconHeart', 'IconLayers'];
       return icons[index % icons.length];
     },
     // 初始化表单数据
     initForm() {
       const data = {};
       const isRemember = this.memoryMode === 'remember' && this.storedPreferences;
-      
+
       // 1. 确定模型
       let modelToUse;
       if (isRemember && this.storedPreferences.aiModel) {
@@ -891,7 +855,7 @@ export default {
     },
     async handleSubmit() {
       if (!this.validateApiKey()) return;
-    // 保存记忆设置 (使用 localStorage)
+      // 保存记忆设置 (使用 localStorage)
       if (this.memoryMode === 'remember') {
         try {
           localStorage.setItem('FEIYU_PLUG_MEMORY_MODE', 'remember');
@@ -952,11 +916,11 @@ export default {
 
           try {
             const res = await AddTask({ ...this.edit, ...this.formData });
-            
+
             if (res.code === 200) {
               const taskData = res.data;
               const taskId = taskData.task_id;
-              
+
               // 存储任务ID
               let storedTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
               if (!Array.isArray(storedTaskIds)) storedTaskIds = [];
@@ -967,12 +931,12 @@ export default {
               }
               // 任务进度
               await progressField.setValue(rowId, parseFloat(taskData?.progress || 0));
-              
+
               // 更新表格中的状态
               await statusField.setValue(rowId, taskData.status_str);
 
             } else {
-             ui.showToast({ toastType: 'error', message: res.msg || '任务提交失败' });
+              ui.showToast({ toastType: 'error', message: res.msg || '任务提交失败' });
               break; // 出错时停止循环
             }
           } catch (err) {
@@ -984,7 +948,7 @@ export default {
 
         ui.showToast({ toastType: 'success', message: '任务执行成功' });
         this.recordIdList = []; // 清空选择
-        
+
         // 强制重置暂停状态并启动轮询
         this.isPaused = false;
         const currentStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
@@ -1005,11 +969,11 @@ export default {
       this.isDragging = true;
       this.hasMoved = false;
       this.initialTop = this.indicatorTop;
-      
+
       // 获取Y坐标（鼠标或触摸）
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       this.dragStartY = clientY;
-      
+
       // 阻止默认行为以避免文本选择或滚动，并确保点击不会原生触发
       if (e.cancelable) e.preventDefault();
 
@@ -1022,34 +986,34 @@ export default {
 
     handleDragMove(e) {
       if (!this.isDragging) return;
-      
+
       // 修复：如果鼠标按键在窗口外释放，当鼠标返回时停止拖拽
       if (e.type === 'mousemove' && e.buttons === 0) {
         this.handleDragEnd();
         return;
       }
-      
+
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const deltaY = clientY - this.dragStartY;
-      
+
       // 检查移动阈值
       if (Math.abs(deltaY) > 2) {
-          this.hasMoved = true;
+        this.hasMoved = true;
       }
 
       let newTop = this.initialTop + deltaY;
-      
+
       // 边界检查
       const windowHeight = window.innerHeight;
       const indicatorHeight = 40; // 指示器大致高度
       const margin = 10;
-      
+
       // 保持在垂直边界内
       if (newTop < margin) newTop = margin;
       if (newTop > windowHeight - indicatorHeight - margin) newTop = windowHeight - indicatorHeight - margin;
-      
+
       this.indicatorTop = newTop;
-      
+
       if (e.cancelable) e.preventDefault();
     },
 
@@ -1062,7 +1026,7 @@ export default {
 
       // 如果没有显著移动，则视为点击
       if (!this.hasMoved) {
-          this.togglePolling();
+        this.togglePolling();
       }
     },
 
@@ -1107,9 +1071,9 @@ export default {
         clearTimeout(this.pollingTimer);
         this.pollingTimer = null;
       }
-      
+
       if (this.isPaused) return;
- 
+
       // 始终从 bridge 读取最新的任务ID
       let currentStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
       if (!Array.isArray(currentStoredTaskIds)) currentStoredTaskIds = [];
@@ -1123,7 +1087,7 @@ export default {
         const res = await GetTaskStatus({ taskIds: currentStoredTaskIds });
         if (res && res.code === 200) {
           const tasks = Array.isArray(res.data) ? res.data : [res.data];
-          
+
           // 使用新的ID副本进行过滤
           let nextRoundTaskIds = [...currentStoredTaskIds];
 
@@ -1135,7 +1099,7 @@ export default {
 
             try {
               const table = await bitable.base.getTable(task.table_id);
- 
+
 
               // 状态 3: 已完成
               if (task.status === 3) {
@@ -1143,7 +1107,7 @@ export default {
                 try {
                   if (task.images && task.images.length > 0) {
                     console.log('[Task] Processing images:', task.images.length);
-                    
+
                     // 1. 获取字段，特定错误处理
                     let outPutImgField;
                     try {
@@ -1160,10 +1124,10 @@ export default {
                         console.log('[Task] Field "生成结果" created successfully.');
                       } catch (createError) {
                         console.error('[Task] Failed to create field "生成结果":', createError);
-                        throw new Error('Field "生成结果" access and creation failed'); 
+                        throw new Error('Field "生成结果" access and creation failed');
                       }
                     }
-                    
+
                     // 2. 处理图片
                     const fileList = [];
                     for (const imgUrl of task.images) {
@@ -1183,30 +1147,30 @@ export default {
                     if (fileList.length > 0) {
                       // 1. 获取旧数据
                       const existingVal = await outPutImgField.getValue(task.row_id);
-                      
+
                       // 2. 先上传新文件（这会覆盖旧数据，但我们已经备份在 existingVal）
                       // 分步上传是为了解决 SDK 不支持同时传入“File对象”和“已有附件Token对象”导致 createReader 报错的问题
                       await outPutImgField.setValue(task.row_id, fileList);
-                      
+
                       // 3. 如果原本有数据，需要合并
                       if (existingVal && existingVal.length > 0) {
-                          // 获取刚上传的新数据的 Token 信息
-                          const newVal = await outPutImgField.getValue(task.row_id);
-                          
-                          // 合并：确保使用纯对象
-                          let oldList = [];
-                          let newList = [];
-                          try {
-                             oldList = JSON.parse(JSON.stringify(existingVal));
-                             newList = JSON.parse(JSON.stringify(newVal));
-                          } catch (e) {
-                             console.warn('Parse attachments error', e);
-                          }
-                          
-                          const finalAttachments = [...oldList, ...newList];
-                          
-                          // 4. 回填合并后的数据
-                          await outPutImgField.setValue(task.row_id, finalAttachments);
+                        // 获取刚上传的新数据的 Token 信息
+                        const newVal = await outPutImgField.getValue(task.row_id);
+
+                        // 合并：确保使用纯对象
+                        let oldList = [];
+                        let newList = [];
+                        try {
+                          oldList = JSON.parse(JSON.stringify(existingVal));
+                          newList = JSON.parse(JSON.stringify(newVal));
+                        } catch (e) {
+                          console.warn('Parse attachments error', e);
+                        }
+
+                        const finalAttachments = [...oldList, ...newList];
+
+                        // 4. 回填合并后的数据
+                        await outPutImgField.setValue(task.row_id, finalAttachments);
                       }
                       console.log('[Task] Images uploaded successfully (appended).');
                     }
@@ -1214,11 +1178,11 @@ export default {
                 } catch (err) {
                   console.error('[Task] Image upload logic error (continuing to cleanup):', err);
                 }
-                
+
                 // 3. 从列表中移除
                 console.log('[Task] Removing task ID:', task.task_id);
                 nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
-              }               
+              }
               // 状态 -1: 失败
               else if (task.status === -1) {
                 // 从列表中移除
@@ -1244,14 +1208,14 @@ export default {
           // 重要：在保存之前重新读取存储，以避免覆盖等待期间添加的新任务
           let latestStoredIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
           if (!Array.isArray(latestStoredIds)) latestStoredIds = [];
-          
+
           // 计算应保留哪些 ID：
           // (存储中的最新 ID) 减去 (我们在本次循环中完成/失败的 ID)
           // 我们不能只使用 nextRoundTaskIds，因为它不包含新添加的 ID。
-          
+
           // 识别本次轮询周期中移除的 ID
           const removedIds = currentStoredTaskIds.filter(id => !nextRoundTaskIds.includes(id));
-          
+
           // 从最新存储中过滤掉它们
           const finalTaskIds = latestStoredIds.filter(id => !removedIds.includes(id));
 
@@ -1261,15 +1225,15 @@ export default {
 
           // 如果任务仍存在，继续轮询
           if (finalTaskIds.length > 0 && !this.isPaused) {
-             this.pollingTimer = setTimeout(() => {
-               this.pollTaskStatus();
-             }, 5000);
+            this.pollingTimer = setTimeout(() => {
+              this.pollTaskStatus();
+            }, 5000);
           }
 
         } else {
-           // API 错误，停止轮询
-           this.pollingTimer = null;
-           this.isPaused = true;
+          // API 错误，停止轮询
+          this.pollingTimer = null;
+          this.isPaused = true;
         }
       } catch (e) {
         // 发生错误，停止轮询
@@ -1334,202 +1298,202 @@ export default {
       }
       this.isSelectingData = true;
       try {
-      this.recordIdList = [];
-      const { baseId, tableId, viewId } = await bitable.base.getSelection();
-      // 基础数据
-      this.edit.appToken = baseId;
-      this.edit.tableId = tableId;
-      this.edit.viewId = viewId;
-      // 检测当前表格字段是否符合规则
-      const requiredFields = ['商品标题', '产品描述', '参考图'];
-      try {
-        const table = await bitable.base.getTable(tableId);
-        const fieldMetaList = await table.getFieldMetaList();
-        const existingFieldNames = fieldMetaList.map(field => field.name);
-        
-        const missingFields = requiredFields.filter(field => !existingFieldNames.includes(field));
-        
-        if (missingFields.length > 0) {
-          ui.showToast({
-            toastType: 'error',
-            message: `当前表格缺失以下字段，请检查: 「  ${missingFields.join('、')}  」是否存在`
-          });
-          return;
-        }
+        this.recordIdList = [];
+        const { baseId, tableId, viewId } = await bitable.base.getSelection();
+        // 基础数据
+        this.edit.appToken = baseId;
+        this.edit.tableId = tableId;
+        this.edit.viewId = viewId;
+        // 检测当前表格字段是否符合规则
+        const requiredFields = ['商品标题', '产品描述', '参考图'];
+        try {
+          const table = await bitable.base.getTable(tableId);
+          const fieldMetaList = await table.getFieldMetaList();
+          const existingFieldNames = fieldMetaList.map(field => field.name);
 
-        // 检查并强制转换核心字段类型
-        const typeMapping = {
-          '商品标题': FieldType.Text,
-          '产品描述': FieldType.Text,
-          '参考图': FieldType.Attachment
-        };
+          const missingFields = requiredFields.filter(field => !existingFieldNames.includes(field));
 
-        for (const [fieldName, expectedType] of Object.entries(typeMapping)) {
-          const field = fieldMetaList.find(f => f.name === fieldName);
-          if (field && field.type !== expectedType) {
-            try {
-              console.log(`Converting field ${fieldName} from ${field.type} to ${expectedType}`);
-              await table.setField(field.id, { type: expectedType });
-            } catch (err) {
-              console.error(`Failed to convert field ${fieldName}:`, err);
-              ui.showToast({
-                toastType: 'warning',
-                message: `字段「${fieldName}」类型不正确且无法自动转换，请手动修改为${expectedType === FieldType.Attachment ? '附件' : '文本'}类型`
-              });
-              // 如果转换失败，可能需要终止，或者让用户自行处理。根据需求“如果类型错误，强制转换为正确类型”，失败则意味着无法满足需求。
-              // 这里选择抛出错误终止流程，以免后续逻辑报错
-              throw new Error(`Field ${fieldName} type mismatch and conversion failed`);
+          if (missingFields.length > 0) {
+            ui.showToast({
+              toastType: 'error',
+              message: `当前表格缺失以下字段，请检查: 「  ${missingFields.join('、')}  」是否存在`
+            });
+            return;
+          }
+
+          // 检查并强制转换核心字段类型
+          const typeMapping = {
+            '商品标题': FieldType.Text,
+            '产品描述': FieldType.Text,
+            '参考图': FieldType.Attachment
+          };
+
+          for (const [fieldName, expectedType] of Object.entries(typeMapping)) {
+            const field = fieldMetaList.find(f => f.name === fieldName);
+            if (field && field.type !== expectedType) {
+              try {
+                console.log(`Converting field ${fieldName} from ${field.type} to ${expectedType}`);
+                await table.setField(field.id, { type: expectedType });
+              } catch (err) {
+                console.error(`Failed to convert field ${fieldName}:`, err);
+                ui.showToast({
+                  toastType: 'warning',
+                  message: `字段「${fieldName}」类型不正确且无法自动转换，请手动修改为${expectedType === FieldType.Attachment ? '附件' : '文本'}类型`
+                });
+                // 如果转换失败，可能需要终止，或者让用户自行处理。根据需求“如果类型错误，强制转换为正确类型”，失败则意味着无法满足需求。
+                // 这里选择抛出错误终止流程，以免后续逻辑报错
+                throw new Error(`Field ${fieldName} type mismatch and conversion failed`);
+              }
             }
           }
-        }
-        
 
-        // 自动补充字段
-        
-        // 1. 任务运行状态
-         const statusFieldName = '任务运行状态';
-         const statusOptionsConfig = [
-           { name: '待创建', color: 0 }, // 0: 灰色
-           { name: '已排队', color: 2 }, // 2: 橙色
-           { name: '执行中', color: 4 }, // 4: 绿色
-           { name: '已完成', color: 5 }, // 5: 蓝色
-           { name: '已失败', color: 1 }  // 1: 红色
-         ];
-         
-         const existingStatusField = fieldMetaList.find(f => f.name === statusFieldName);
-         if (existingStatusField) {
+
+          // 自动补充字段
+
+          // 1. 任务运行状态
+          const statusFieldName = '任务运行状态';
+          const statusOptionsConfig = [
+            { name: '待创建', color: 0 }, // 0: 灰色
+            { name: '已排队', color: 2 }, // 2: 橙色
+            { name: '执行中', color: 4 }, // 4: 绿色
+            { name: '已完成', color: 5 }, // 5: 蓝色
+            { name: '已失败', color: 1 }  // 1: 红色
+          ];
+
+          const existingStatusField = fieldMetaList.find(f => f.name === statusFieldName);
+          if (existingStatusField) {
             // 存在则检测类型
             if (existingStatusField.type !== FieldType.SingleSelect) {
               console.log(`Converting ${statusFieldName} to SingleSelect`);
-              await table.setField(existingStatusField.id, { 
+              await table.setField(existingStatusField.id, {
                 type: FieldType.SingleSelect,
                 property: { options: statusOptionsConfig }
               });
             }
-         } else {
-           // 不存在则创建
+          } else {
+            // 不存在则创建
             await table.addField({
               type: FieldType.SingleSelect,
               name: statusFieldName,
               property: { options: statusOptionsConfig }
             });
-         }
-         
-         // --- 统一设置“任务运行状态”默认值 ---
-         try {
-           const statusField = await table.getField(statusFieldName);
-           let statusOptions = await statusField.getOptions();
-           
-           // 如果选项为空（可能是转换类型时丢失），重新设置选项
-           if (!statusOptions || statusOptions.length === 0) {
+          }
+
+          // --- 统一设置“任务运行状态”默认值 ---
+          try {
+            const statusField = await table.getField(statusFieldName);
+            let statusOptions = await statusField.getOptions();
+
+            // 如果选项为空（可能是转换类型时丢失），重新设置选项
+            if (!statusOptions || statusOptions.length === 0) {
               console.log('Options missing for status field, resetting options...');
               // 注意：setField 修改属性时不需要传 type
               await table.setField(statusField.id, { property: { options: statusOptionsConfig } });
               statusOptions = await statusField.getOptions();
-           }
+            }
 
-           const targetOption = statusOptions.find(opt => opt.name === '待创建');
-           if (targetOption) {
-             const view = await table.getViewById(viewId);
-             const recordIdList = await view.getVisibleRecordIdList();
-             for (const recordId of recordIdList) {
+            const targetOption = statusOptions.find(opt => opt.name === '待创建');
+            if (targetOption) {
+              const view = await table.getViewById(viewId);
+              const recordIdList = await view.getVisibleRecordIdList();
+              for (const recordId of recordIdList) {
                 // 如果值为空，则设置默认值
                 const val = await statusField.getValue(recordId);
                 if (!val) {
                   await statusField.setValue(recordId, targetOption.id);
                 }
-             }
-           }
-         } catch (e) {
-           console.error('Set default value for status field failed:', e);
-         }
+              }
+            }
+          } catch (e) {
+            console.error('Set default value for status field failed:', e);
+          }
 
-         // 2. 任务进度
-         const progressFieldName = '任务进度';
-         const existingProgressField = fieldMetaList.find(f => f.name === progressFieldName);
-         let shouldCreateProgress = false;
+          // 2. 任务进度
+          const progressFieldName = '任务进度';
+          const existingProgressField = fieldMetaList.find(f => f.name === progressFieldName);
+          let shouldCreateProgress = false;
 
-         if (existingProgressField) {
+          if (existingProgressField) {
             // 存在则检测类型
             if (existingProgressField.type !== FieldType.Progress) {
-               console.log(`Deleting ${progressFieldName} due to type mismatch`);
-               try {
-                   await table.deleteField(existingProgressField.id);
-                   shouldCreateProgress = true;
-               } catch (error) {
-                   console.error(`Failed to delete field ${progressFieldName}:`, error);
-                   // 如果删除失败，可能需要中断或抛出错误，或者尝试直接 setField？
-                   // 用户要求是“删除掉”，如果删除不了，后续创建也会报错（重名）。
-                   // 这里简单的抛出异常或者让后续逻辑去处理
-                   throw error;
-               }
+              console.log(`Deleting ${progressFieldName} due to type mismatch`);
+              try {
+                await table.deleteField(existingProgressField.id);
+                shouldCreateProgress = true;
+              } catch (error) {
+                console.error(`Failed to delete field ${progressFieldName}:`, error);
+                // 如果删除失败，可能需要中断或抛出错误，或者尝试直接 setField？
+                // 用户要求是“删除掉”，如果删除不了，后续创建也会报错（重名）。
+                // 这里简单的抛出异常或者让后续逻辑去处理
+                throw error;
+              }
             }
-         } else {
+          } else {
             shouldCreateProgress = true;
-         }
+          }
 
-         if (shouldCreateProgress) {
-           await table.addField({
-             type: FieldType.Progress,
-             name: progressFieldName,
-             property: { formatter: '0%' }
-           });
-         }
-         
-         // --- 统一设置“任务进度”默认值 ---
-         try {
+          if (shouldCreateProgress) {
+            await table.addField({
+              type: FieldType.Progress,
+              name: progressFieldName,
+              property: { formatter: '0%' }
+            });
+          }
+
+          // --- 统一设置“任务进度”默认值 ---
+          try {
             const progressField = await table.getField(progressFieldName);
             const view = await table.getViewById(viewId);
             const recordIdList = await view.getVisibleRecordIdList();
             for (const recordId of recordIdList) {
-               const val = await progressField.getValue(recordId);
-               // 数字类型 getValue 返回可能不同，这里简单判断
-               if (val === null || val === undefined) {
-                 await progressField.setValue(recordId, 0);
-               }
+              const val = await progressField.getValue(recordId);
+              // 数字类型 getValue 返回可能不同，这里简单判断
+              if (val === null || val === undefined) {
+                await progressField.setValue(recordId, 0);
+              }
             }
-         } catch (e) {
+          } catch (e) {
             console.error('Set default value for progress field failed:', e);
-         }
+          }
 
-         // 3. 输出图数量
-         const outputFieldName = '输出图数量';
-         const numOptions = [];
-         for (let i = 1; i <= 20; i++) {
-             numOptions.push({ name: String(i) });
-         }
-         
-         const existingOutputField = fieldMetaList.find(f => f.name === outputFieldName);
-         if (existingOutputField) {
-             if (existingOutputField.type !== FieldType.SingleSelect) {
-                 console.log(`Converting ${outputFieldName} to SingleSelect`);
-                 await table.setField(existingOutputField.id, {
-                     type: FieldType.SingleSelect,
-                     property: { options: numOptions }
-                 });
-             }
-         } else {
-           await table.addField({
-             type: FieldType.SingleSelect,
-             name: outputFieldName,
-             property: { options: numOptions }
-           });
-         }
-         
-         // --- 统一设置“输出图数量”默认值 ---
-         try {
-           const outputNumField = await table.getField(outputFieldName);
-           let outputOptions = await outputNumField.getOptions();
-           
-           // 如果选项为空，重新设置
-           if (!outputOptions || outputOptions.length === 0) {
-               console.log('Options missing for output field, resetting options...');
-               await table.setField(outputNumField.id, { property: { options: numOptions } });
-               outputOptions = await outputNumField.getOptions();
-           }
-           
-           const targetOutputOption = outputOptions.find(opt => opt.name === '5');
-           if (targetOutputOption) {
+          // 3. 输出图数量
+          const outputFieldName = '输出图数量';
+          const numOptions = [];
+          for (let i = 1; i <= 20; i++) {
+            numOptions.push({ name: String(i) });
+          }
+
+          const existingOutputField = fieldMetaList.find(f => f.name === outputFieldName);
+          if (existingOutputField) {
+            if (existingOutputField.type !== FieldType.SingleSelect) {
+              console.log(`Converting ${outputFieldName} to SingleSelect`);
+              await table.setField(existingOutputField.id, {
+                type: FieldType.SingleSelect,
+                property: { options: numOptions }
+              });
+            }
+          } else {
+            await table.addField({
+              type: FieldType.SingleSelect,
+              name: outputFieldName,
+              property: { options: numOptions }
+            });
+          }
+
+          // --- 统一设置“输出图数量”默认值 ---
+          try {
+            const outputNumField = await table.getField(outputFieldName);
+            let outputOptions = await outputNumField.getOptions();
+
+            // 如果选项为空，重新设置
+            if (!outputOptions || outputOptions.length === 0) {
+              console.log('Options missing for output field, resetting options...');
+              await table.setField(outputNumField.id, { property: { options: numOptions } });
+              outputOptions = await outputNumField.getOptions();
+            }
+
+            const targetOutputOption = outputOptions.find(opt => opt.name === '5');
+            if (targetOutputOption) {
               const view = await table.getViewById(viewId);
               const recordIdList = await view.getVisibleRecordIdList();
               for (const recordId of recordIdList) {
@@ -1538,34 +1502,34 @@ export default {
                   await outputNumField.setValue(recordId, targetOutputOption.id);
                 }
               }
-           }
-         } catch (e) {
-            console.error('Set default value for output field failed:', e);
-         }
-
-        // 4. 生成结果
-        const resultFieldName = '生成结果';
-        const existingResultField = fieldMetaList.find(f => f.name === resultFieldName);
-        if (existingResultField) {
-            if (existingResultField.type !== FieldType.Attachment) {
-                console.log(`Converting ${resultFieldName} to Attachment`);
-                await table.setField(existingResultField.id, { type: FieldType.Attachment });
             }
-        } else {
-          await table.addField({ type: FieldType.Attachment, name: resultFieldName });
+          } catch (e) {
+            console.error('Set default value for output field failed:', e);
+          }
+
+          // 4. 生成结果
+          const resultFieldName = '生成结果';
+          const existingResultField = fieldMetaList.find(f => f.name === resultFieldName);
+          if (existingResultField) {
+            if (existingResultField.type !== FieldType.Attachment) {
+              console.log(`Converting ${resultFieldName} to Attachment`);
+              await table.setField(existingResultField.id, { type: FieldType.Attachment });
+            }
+          } else {
+            await table.addField({ type: FieldType.Attachment, name: resultFieldName });
+          }
+
+        } catch (error) {
+          console.error('Check fields error:', error);
+          ui.showToast({
+            toastType: 'error',
+            message: '检测字段失败'
+          });
+          return;
         }
 
-      } catch (error) {
-        console.error('Check fields error:', error);
-        ui.showToast({
-          toastType: 'error',
-          message: '检测字段失败'
-        });
-        return;
-      }
-
-      // 获取多选，选中的表格数据 recordIdList 是一个数组，表格的ID
-      this.recordIdList = await bitable.ui.selectRecordIdList(tableId, viewId);
+        // 获取多选，选中的表格数据 recordIdList 是一个数组，表格的ID
+        this.recordIdList = await bitable.ui.selectRecordIdList(tableId, viewId);
       } catch (error) {
         console.error(error);
       } finally {
@@ -1590,7 +1554,7 @@ export default {
         // 1. 获取所有数据表，用于生成不重复的表名
         const tableList = await bitable.base.getTableList();
         const names = await Promise.all(tableList.map(table => table.getName()));
-        
+
         let newName = '飞鱼数据表';
         let counter = 1;
         while (names.includes(`${newName}${counter}`)) {
@@ -1669,18 +1633,24 @@ export default {
 </script>
 
 <style lang="scss">
-.arco-trigger-popup{
+.arco-trigger-popup {
   max-width: 325px;
-  .arco-select-option-content{
+
+  .arco-select-option-content {
     width: 100%;
   }
 }
+
 /* 自定义弹窗动画 */
-.modal-fade-enter-active, .modal-fade-leave-active {
+.modal-fade-enter-active,
+.modal-fade-leave-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.modal-fade-enter-from, .modal-fade-leave-to {
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
   opacity: 0;
+
   .custom-modal-container {
     transform: scale(0.9) translateY(20px);
   }
@@ -1703,12 +1673,14 @@ export default {
 
 .custom-modal-container {
   width: 240px;
-  background-color: transparent; /* 移除容器背景色，防止圆角处白边泄露 */
+  background-color: transparent;
+  /* 移除容器背景色，防止圆角处白边泄露 */
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateZ(0); /* 开启硬件加速，优化圆角渲染 */
+  transform: translateZ(0);
+  /* 开启硬件加速，优化圆角渲染 */
 }
 
 .kefu-modal-content {
@@ -1725,7 +1697,8 @@ export default {
   color: #fff;
   overflow: hidden;
   border-radius: 16px 16px 0 0;
-  margin: -1px -1px 0 -1px; /* 负边距微调，确保完全覆盖可能存在的白边 */
+  margin: -1px -1px 0 -1px;
+  /* 负边距微调，确保完全覆盖可能存在的白边 */
 
   &::before {
     content: "";
@@ -1734,7 +1707,7 @@ export default {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
     pointer-events: none;
   }
 }
@@ -1807,9 +1780,17 @@ export default {
 }
 
 @keyframes scanning {
-  0% { top: 0; }
-  50% { top: 100%; }
-  100% { top: 0; }
+  0% {
+    top: 0;
+  }
+
+  50% {
+    top: 100%;
+  }
+
+  100% {
+    top: 0;
+  }
 }
 
 .qr-code-img {
@@ -1915,6 +1896,7 @@ export default {
       color: #1d2129;
       line-height: 1.2;
     }
+
     .settings-subtitle {
       font-size: 10px;
       color: #86909c;
@@ -1929,6 +1911,7 @@ export default {
     font-size: 16px;
     color: #86909c;
     transition: all 0.2s;
+
     &:hover {
       color: #1d2129;
       transform: rotate(90deg);
@@ -1943,6 +1926,7 @@ export default {
 
   .settings-group {
     margin-bottom: 20px;
+
     &:last-child {
       margin-bottom: 0;
     }
@@ -1969,6 +1953,7 @@ export default {
     align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid #f7f8fa;
+
     &:last-child {
       border-bottom: none;
     }
@@ -2001,10 +1986,11 @@ export default {
   color: var(--custom-text-color);
   /* overflow: hidden; 移除，由外层 LayoutView 控制滚动 */
 }
+
 /* 轮播图区域 */
 .banner-section {
   margin-bottom: 24px;
-  
+
   .banner-item {
     height: 100%;
     width: 100%;
@@ -2013,7 +1999,7 @@ export default {
     justify-content: center;
     position: relative;
     overflow: hidden;
-    
+
     .banner-img {
       width: 100%;
       height: 100%;
@@ -2038,7 +2024,7 @@ export default {
   cursor: pointer;
   font-size: 16px;
   transition: color 0.2s;
-  
+
   &:hover {
     color: rgb(var(--primary-6));
   }
@@ -2050,7 +2036,7 @@ export default {
   /* left: 5px; Removed for dynamic positioning */
   /* bottom: 150px; Removed for dynamic positioning */
   z-index: 9999;
-  
+
   .indicator-icon {
     width: 24px;
     height: 24px;
@@ -2079,11 +2065,12 @@ export default {
       border-color: #ff7d00;
       box-shadow: 0 2px 12px rgba(255, 125, 0, 0.2);
     }
-    
-    &.is-running, &.is-paused {
+
+    &.is-running,
+    &.is-paused {
       cursor: pointer;
     }
-    
+
     &:hover {
       transform: scale(1.1);
     }
@@ -2108,28 +2095,30 @@ export default {
     .header-left {
       display: flex;
       align-items: center;
-      
+
       .vertical-bar {
         width: 4px;
         height: 14px;
-        background-color: #722ED1; /* 紫色竖条 */
+        background-color: #722ED1;
+        /* 紫色竖条 */
         border-radius: 2px;
         margin-right: 8px;
       }
-      
+
       .section-title {
         font-size: 15px;
         font-weight: 600;
         color: var(--custom-text-color);
         margin-right: 12px;
       }
-      
+
       .link-text {
         font-size: 12px;
         color: #165DFF;
         text-decoration: none;
         height: 22.5px;
         line-height: 2;
+
         &:hover {
           text-decoration: underline;
         }
@@ -2145,13 +2134,14 @@ export default {
       gap: 12px;
       border-top: 1px solid var(--custom-border-color);
       padding-top: 12px;
-      
+
       .btn-cancel {
         flex: 0 0 auto;
         color: var(--custom-text-secondary);
         border-radius: 6px;
         padding: 0 16px;
         min-width: 80px;
+
         &:hover {
           background-color: var(--color-fill-2);
           color: var(--custom-text-color);
@@ -2169,7 +2159,7 @@ export default {
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(0, 180, 42, 0.3);
         }
-        
+
         &:active {
           transform: translateY(0);
         }
@@ -2183,14 +2173,15 @@ export default {
         border: 1px solid transparent;
         padding: 8px 12px;
         transition: all 0.2s;
-        
+
         &.arco-input-disabled {
-           background-color: var(--color-fill-1);
-           color: var(--color-text-4);
-           cursor: not-allowed;
+          background-color: var(--color-fill-1);
+          color: var(--color-text-4);
+          cursor: not-allowed;
         }
-        
-        &:hover:not(.arco-input-disabled), &:focus-within:not(.arco-input-disabled) {
+
+        &:hover:not(.arco-input-disabled),
+        &:focus-within:not(.arco-input-disabled) {
           background-color: var(--custom-card-bg);
           border-color: #722ED1;
           box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.1);
@@ -2207,7 +2198,7 @@ export default {
       align-items: center;
       gap: 8px;
       transition: all 0.3s;
-      
+
       .count-badge {
         display: flex;
         align-items: center;
@@ -2216,7 +2207,7 @@ export default {
         color: var(--color-text-3);
         transition: color 0.3s;
       }
-      
+
       .count-text {
         font-size: 13px;
         color: var(--color-text-2);
@@ -2225,7 +2216,7 @@ export default {
 
       &.has-data {
         background-color: rgba(0, 180, 42, 0.1);
-        
+
         .count-badge {
           color: #00b42a;
         }
@@ -2270,34 +2261,127 @@ export default {
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      
-      &.icon-0 { background: rgba(22, 93, 255, 0.1); color: #165DFF; }
-      &.icon-1 { background: rgba(114, 46, 209, 0.1); color: #722ED1; }
-      &.icon-2 { background: rgba(255, 125, 0, 0.1); color: #FF7D00; }
-      &.icon-3 { background: rgba(0, 180, 42, 0.1); color: #00B42A; }
-      &.icon-4 { background: rgba(245, 63, 63, 0.1); color: #F53F3F; }
-      &.icon-5 { background: rgba(19, 194, 194, 0.1); color: #13C2C2; }
-      &.icon-6 { background: rgba(250, 173, 20, 0.1); color: #FAAD14; }
-      &.icon-7 { background: rgba(128, 90, 213, 0.1); color: #805AD5; }
-      &.icon-8 { background: rgba(82, 196, 26, 0.1); color: #52C41A; }
-      &.icon-9 { background: rgba(24, 144, 255, 0.1); color: #1890FF; }
-      &.icon-10 { background: rgba(135, 208, 104, 0.1); color: #87D068; }
-      &.icon-11 { background: rgba(64, 169, 255, 0.1); color: #40A9FF; }
-      &.icon-12 { background: rgba(250, 140, 22, 0.1); color: #FA8C16; }
-      &.icon-13 { background: rgba(111, 66, 193, 0.1); color: #6F42C1; }
-      &.icon-14 { background: rgba(47, 84, 235, 0.1); color: #2F54EB; }
-      &.icon-15 { background: rgba(105, 219, 124, 0.1); color: #69DB7C; }
-      &.icon-16 { background: rgba(250, 219, 20, 0.1); color: #FADB14; }
-      &.icon-17 { background: rgba(235, 47, 150, 0.1); color: #EB2F96; }
-      &.icon-18 { background: rgba(26, 173, 196, 0.1); color: #1AADC4; }
-      &.icon-19 { background: rgba(153, 84, 187, 0.1); color: #9954BB; }
-      
+
+      &.icon-0 {
+        background: rgba(22, 93, 255, 0.1);
+        color: #165DFF;
+      }
+
+      &.icon-1 {
+        background: rgba(114, 46, 209, 0.1);
+        color: #722ED1;
+      }
+
+      &.icon-2 {
+        background: rgba(255, 125, 0, 0.1);
+        color: #FF7D00;
+      }
+
+      &.icon-3 {
+        background: rgba(0, 180, 42, 0.1);
+        color: #00B42A;
+      }
+
+      &.icon-4 {
+        background: rgba(245, 63, 63, 0.1);
+        color: #F53F3F;
+      }
+
+      &.icon-5 {
+        background: rgba(19, 194, 194, 0.1);
+        color: #13C2C2;
+      }
+
+      &.icon-6 {
+        background: rgba(250, 173, 20, 0.1);
+        color: #FAAD14;
+      }
+
+      &.icon-7 {
+        background: rgba(128, 90, 213, 0.1);
+        color: #805AD5;
+      }
+
+      &.icon-8 {
+        background: rgba(82, 196, 26, 0.1);
+        color: #52C41A;
+      }
+
+      &.icon-9 {
+        background: rgba(24, 144, 255, 0.1);
+        color: #1890FF;
+      }
+
+      &.icon-10 {
+        background: rgba(135, 208, 104, 0.1);
+        color: #87D068;
+      }
+
+      &.icon-11 {
+        background: rgba(64, 169, 255, 0.1);
+        color: #40A9FF;
+      }
+
+      &.icon-12 {
+        background: rgba(250, 140, 22, 0.1);
+        color: #FA8C16;
+      }
+
+      &.icon-13 {
+        background: rgba(111, 66, 193, 0.1);
+        color: #6F42C1;
+      }
+
+      &.icon-14 {
+        background: rgba(47, 84, 235, 0.1);
+        color: #2F54EB;
+      }
+
+      &.icon-15 {
+        background: rgba(105, 219, 124, 0.1);
+        color: #69DB7C;
+      }
+
+      &.icon-16 {
+        background: rgba(250, 219, 20, 0.1);
+        color: #FADB14;
+      }
+
+      &.icon-17 {
+        background: rgba(235, 47, 150, 0.1);
+        color: #EB2F96;
+      }
+
+      &.icon-18 {
+        background: rgba(26, 173, 196, 0.1);
+        color: #1AADC4;
+      }
+
+      &.icon-19 {
+        background: rgba(153, 84, 187, 0.1);
+        color: #9954BB;
+      }
+
       /* Fixed configuration items - using completely unique colors */
-      &.icon-fixed-0 { background: rgba(255, 107, 107, 0.1); color: #FF6B6B; }
-      &.icon-fixed-1 { background: rgba(77, 171, 247, 0.1); color: #4DABF7; }
-      &.icon-fixed-2 { background: rgba(130, 201, 30, 0.1); color: #82C91E; }
-      
-      &.icon-history { background: rgba(146, 84, 222, 0.1); color: #9254DE; }
+      &.icon-fixed-0 {
+        background: rgba(255, 107, 107, 0.1);
+        color: #FF6B6B;
+      }
+
+      &.icon-fixed-1 {
+        background: rgba(77, 171, 247, 0.1);
+        color: #4DABF7;
+      }
+
+      &.icon-fixed-2 {
+        background: rgba(130, 201, 30, 0.1);
+        color: #82C91E;
+      }
+
+      &.icon-history {
+        background: rgba(146, 84, 222, 0.1);
+        color: #9254DE;
+      }
     }
 
     .item-info {
@@ -2305,7 +2389,7 @@ export default {
       flex-direction: column;
       flex: 1;
       min-width: 0;
-      
+
       .label-text {
         font-size: 15px;
         font-weight: 500;
@@ -2332,10 +2416,12 @@ export default {
       border-radius: 6px;
       width: 100%;
       /* 移除 max-width 限制，使其宽度与 item-right 容器（58%）保持一致 */
-      height: 32px; /* 与上方输入框/下拉框高度保持一致 */
+      height: 32px;
+      /* 与上方输入框/下拉框高度保持一致 */
       box-sizing: border-box;
       user-select: none;
-      position: relative; /* 为滑块定位 */
+      position: relative;
+      /* 为滑块定位 */
 
       .segmented-slider {
         position: absolute;
@@ -2359,7 +2445,8 @@ export default {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px; /* 与上方选项文字大小保持一致 */
+        font-size: 13px;
+        /* 与上方选项文字大小保持一致 */
         cursor: pointer;
         border-radius: 4px;
         transition: color 0.3s ease;
@@ -2367,7 +2454,8 @@ export default {
         white-space: nowrap;
         height: 100%;
         position: relative;
-        z-index: 2; /* 确保文字在滑块上方 */
+        z-index: 2;
+        /* 确保文字在滑块上方 */
 
         &.active {
           color: #722ed1;
@@ -2379,14 +2467,16 @@ export default {
         }
       }
     }
-    
+
     .minimal-select {
       width: 100%;
       background: transparent;
+
       :deep(.arco-select-view-single) {
         background: transparent;
         border: none;
         padding-right: 0;
+
         .arco-select-view-value {
           justify-content: flex-end;
           font-size: 14px;
@@ -2420,7 +2510,7 @@ export default {
     .btn-group {
       display: flex;
       gap: 12px;
-      
+
       .btn-submit {
         flex: 1;
         height: 48px;
@@ -2429,16 +2519,16 @@ export default {
         background: linear-gradient(90deg, #165DFF 0%, #722ED1 100%);
         border: none;
         box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
-        
+
         &:hover {
           box-shadow: 0 6px 16px rgba(22, 93, 255, 0.4);
           transform: translateY(-1px);
         }
-        
+
         &:active {
           transform: translateY(1px);
         }
-        
+
         &.is-loading {
           opacity: 0.8;
           cursor: not-allowed;
@@ -2451,25 +2541,27 @@ export default {
           align-items: center;
           justify-content: center;
           line-height: 1.2;
-          
+
           .btn-row-main {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 4px;
-            white-space: nowrap; /* Prevent wrapping */
+            white-space: nowrap;
+            /* Prevent wrapping */
           }
 
           .btn-text {
-             /* Remove flex/gap from here as it's now handled by btn-row-main */
+            /* Remove flex/gap from here as it's now handled by btn-row-main */
           }
-          
+
           .points-info {
             font-size: 10px;
             font-weight: normal;
             opacity: 0.6;
             margin-top: 0px;
-            white-space: nowrap; /* Prevent wrapping */
+            white-space: nowrap;
+            /* Prevent wrapping */
           }
         }
 
@@ -2479,7 +2571,7 @@ export default {
           justify-content: center;
           gap: 6px;
           width: 100%;
-          
+
           .points-info-inline {
             font-size: 12px;
             font-weight: normal;
@@ -2490,7 +2582,7 @@ export default {
         }
       }
     }
-    
+
     .footer-tip {
       text-align: center;
       font-size: 11px;
