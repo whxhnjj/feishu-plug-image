@@ -913,7 +913,6 @@ export default {
 
           const descCellValue = await descField.getValue(rowId);
           this.edit.desc = Array.isArray(descCellValue) ? descCellValue.map(item => item.text).join('\n') : (descCellValue?.text || '');
-
           try {
             const res = await AddTask({ ...this.edit, ...this.formData });
 
