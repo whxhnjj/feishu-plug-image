@@ -555,6 +555,23 @@ export default {
     this.getPlugSelectField();
     this.pollTaskStatus(); // 加载时检查挂起的任务
   },
+  // 新增：组件卸载前清理资源，防止内存泄露
+  beforeUnmount() {
+    // 标记组件已卸载
+    this._isUnmounted = true;
+
+    // 清理轮询定时器
+    if (this.pollingTimer) {
+      clearTimeout(this.pollingTimer);
+      this.pollingTimer = null;
+    }
+
+    // 强制移除可能的全局监听器（防止拖拽时突然卸载组件导致的泄露）
+    window.removeEventListener('mousemove', this.handleDragMove);
+    window.removeEventListener('mouseup', this.handleDragEnd);
+    window.removeEventListener('touchmove', this.handleDragMove);
+    window.removeEventListener('touchend', this.handleDragEnd);
+  },
   methods: {
     handleHelpClick() {
       window.open('https://hey-fish.feishu.cn/docx/X6AadbCE9oDXoyxAgP6cs24on5a?from=from_copylink', '_blank');
@@ -608,13 +625,17 @@ export default {
       this.bannerLoading = true;
       try {
         const res = await GetPlugAd();
+        // 中文注释：如果组件已卸载，不再更新状态，防止内存泄露
+        if (this._isUnmounted) return;
         if (res.code === 200) {
           this.bannerList = res.data || [];
         }
       } catch (error) {
         console.error('Failed to fetch banner:', error);
       } finally {
-        this.bannerLoading = false;
+        if (!this._isUnmounted) {
+          this.bannerLoading = false;
+        }
       }
     },
     async calculatePoints() {
@@ -691,6 +712,8 @@ export default {
         }
 
         const res = await GetPlugSelectField();
+        // 中文注释：防止在请求返回前组件已卸载导致的内存操作风险
+        if (this._isUnmounted) return;
         //  const res = jsonData;
         if (res.code === 200) {
           this.configList = res.data || [];
@@ -705,7 +728,9 @@ export default {
       } catch (error) {
         ui.showToast({ toastType: 'error', message: '网络错误' });
       } finally {
-        this.loading = false;
+        if (!this._isUnmounted) {
+          this.loading = false;
+        }
       }
     },
     async onSubmit() {
@@ -843,6 +868,8 @@ export default {
         // await Promise.all(this.recordIdList.map(rId => resultField.setValue(rId, []).catch(e => console.error('Clear field error', e))));
 
         for (let i = 0; i < this.recordIdList.length; i++) {
+          // 中文注释：循环中检查组件卸载状态，防止后台任务持续运行
+          if (this._isUnmounted) return;
           const rowId = this.recordIdList[i];
           this.edit.rowId = rowId;
 
@@ -854,10 +881,16 @@ export default {
           this.edit.total = totalCellValue?.text || 0;
 
           const titleCellValue = await titleField.getValue(rowId);
-          this.edit.title = Array.isArray(titleCellValue) ? titleCellValue.map(item => item.text).join('\n') : (titleCellValue?.text || '');
+          // 中文注释：防御性处理 getValue 返回的数据，防止 map 报错（如存在 null/undefined 的项）
+          this.edit.title = Array.isArray(titleCellValue) 
+            ? titleCellValue.filter(item => item && item.text).map(item => item.text).join('\n') 
+            : (titleCellValue?.text || (typeof titleCellValue === 'string' ? titleCellValue : ''));
 
           const descCellValue = await descField.getValue(rowId);
-          this.edit.desc = Array.isArray(descCellValue) ? descCellValue.map(item => item.text).join('\n') : (descCellValue?.text || '');
+          // 中文注释：同上，确保在处理富文本或普通文本时逻辑健壮
+          this.edit.desc = Array.isArray(descCellValue) 
+            ? descCellValue.filter(item => item && item.text).map(item => item.text).join('\n') 
+            : (descCellValue?.text || (typeof descCellValue === 'string' ? descCellValue : ''));
           try {
             const res = await AddTask({ ...this.edit, ...this.formData });
 
@@ -994,9 +1027,16 @@ export default {
     },
 
     async pollTaskStatus() {
+      // 新增：防止并发执行导致的内存泄露和定时器累积
+      if (this._isPolling) return;
+      this._isPolling = true;
+
       // 在这里增加一个判断，判断是否有数据表权限，没有的话提示用户没有此多为表格的权限
       try {
         const hasPermission = await bitable.base.isEditable();
+        // 新增：如果组件已卸载，直接退出
+        if (this._isUnmounted) return;
+
         if (!hasPermission) {
           const errMsg = '您没有此表格的权限，终止任务运行。';
           ui.showToast({ toastType: 'error', message: errMsg });
@@ -1011,6 +1051,14 @@ export default {
         this.isPaused = true;
         this.pollingTimer = null;
         return;
+      } finally {
+        // 如果不是因为权限问题退出，且没有卸载，则在 try/catch 结束后重置状态
+        if (!this._isUnmounted) {
+          // 逻辑在后面继续，所以这里不直接 return
+        } else {
+          this._isPolling = false;
+          return;
+        }
       }
 
       // 避免多个轮询循环
@@ -1019,24 +1067,30 @@ export default {
         this.pollingTimer = null;
       }
 
-      if (this.isPaused) return;
-
-      const MAX_POLLING_TASKS = 5;
-
-      // 始终从 bridge 读取最新的任务ID
-      let allStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
-      if (!Array.isArray(allStoredTaskIds)) allStoredTaskIds = [];
-
-      this.runningTaskCount = allStoredTaskIds.length;
-      if (allStoredTaskIds.length === 0) {
+      if (this.isPaused) {
+        this._isPolling = false;
         return;
       }
 
-      // 每次最多轮询指定数量的数据，如果总数不足，则全部轮询
-      const currentStoredTaskIds = allStoredTaskIds.slice(0, MAX_POLLING_TASKS);
+      const MAX_POLLING_TASKS = 5;
 
       try {
+        // 始终从 bridge 读取最新的任务ID
+        let allStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
+        if (this._isUnmounted) return;
+        if (!Array.isArray(allStoredTaskIds)) allStoredTaskIds = [];
+
+        this.runningTaskCount = allStoredTaskIds.length;
+        if (allStoredTaskIds.length === 0) {
+          this._isPolling = false;
+          return;
+        }
+
+        // 每次最多轮询指定数量的数据，如果总数不足，则全部轮询
+        const currentStoredTaskIds = allStoredTaskIds.slice(0, MAX_POLLING_TASKS);
+
         const res = await GetTaskStatus({ taskIds: currentStoredTaskIds });
+        if (this._isUnmounted) return;
         if (res && res.code === 200) {
           const tasks = Array.isArray(res.data) ? res.data : [res.data];
 
@@ -1044,6 +1098,8 @@ export default {
           let nextRoundTaskIds = [...currentStoredTaskIds];
 
           for (const task of tasks) {
+            // 新增：循环中检查卸载状态
+            if (this._isUnmounted) return;
             // 检查此任务是否仍在最新列表中（可能已被其他进程移除，尽管在单线程JS中不太可能）
             if (!nextRoundTaskIds.includes(task.task_id)) continue;
 
@@ -1211,6 +1267,7 @@ export default {
 
           // 重要：在保存之前重新读取存储，以避免覆盖等待期间添加的新任务
           let latestStoredIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
+          if (this._isUnmounted) return;
           if (!Array.isArray(latestStoredIds)) latestStoredIds = [];
 
           // 计算应保留哪些 ID：
@@ -1228,7 +1285,7 @@ export default {
           this.runningTaskCount = finalTaskIds.length;
 
           // 如果任务仍存在，继续轮询
-          if (finalTaskIds.length > 0 && !this.isPaused) {
+          if (finalTaskIds.length > 0 && !this.isPaused && !this._isUnmounted) {
             this.pollingTimer = setTimeout(() => {
               this.pollTaskStatus();
             }, 5000);
@@ -1247,6 +1304,8 @@ export default {
         this.addLog('轮询过程致命错误', e.message);
         this.pollingTimer = null;
         this.isPaused = true;
+      } finally {
+        this._isPolling = false;
       }
     },
 
@@ -1563,7 +1622,38 @@ export default {
         }
 
         // 获取多选，选中的表格数据 recordIdList 是一个数组，表格的ID
-        this.recordIdList = await bitable.ui.selectRecordIdList(tableId, viewId);
+        const selectedIds = await bitable.ui.selectRecordIdList(tableId, viewId);
+        
+        // 过滤：如果“商品标题”和“产品描述”都没有值，则过滤掉该行
+        const table = await bitable.base.getTable(tableId);
+        const titleField = await table.getField('商品标题');
+        const descField = await table.getField('产品描述');
+        
+        const validIds = [];
+        for (const recordId of selectedIds) {
+          const titleVal = await titleField.getValue(recordId);
+          const descVal = await descField.getValue(recordId);
+          
+          // 中文注释：使用健壮的判断方式检查是否有值，支持字符串、富文本数组等格式
+          const hasTitle = Array.isArray(titleVal) 
+            ? titleVal.some(t => t && t.text) 
+            : !!(titleVal?.text || (typeof titleVal === 'string' ? titleVal : ''));
+          const hasDesc = Array.isArray(descVal) 
+            ? descVal.some(t => t && t.text) 
+            : !!(descVal?.text || (typeof descVal === 'string' ? descVal : ''));
+          
+          if (hasTitle || hasDesc) {
+            validIds.push(recordId);
+          }
+        }
+        
+        this.recordIdList = validIds;
+        
+        if (selectedIds.length > 0 && validIds.length === 0) {
+          ui.showToast({ toastType: 'warning', message: '选中的数据中，“商品标题”和“产品描述”均为空，已自动过滤' });
+        } else if (validIds.length < selectedIds.length) {
+          console.log(`Filtered out ${selectedIds.length - validIds.length} empty records`);
+        }
       } catch (error) {
         console.error(error);
       } finally {
