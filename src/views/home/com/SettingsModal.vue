@@ -25,7 +25,7 @@
                     <div class="row-label">推广横幅</div>
                     <div class="row-desc">显示顶部推广横幅及广告</div>
                   </div>
-                  <a-switch :model-value="!isBannerHidden" @change="$emit('toggle-banner')" type="round">
+                  <a-switch :model-value="!isBannerHidden" @change="$emit('toggle-banner', $event)" type="round">
                     <template #checked>开启</template>
                     <template #unchecked>关闭</template>
                   </a-switch>
@@ -35,7 +35,7 @@
                     <div class="row-label">任务状态</div>
                     <div class="row-desc">显示任务运行状态指示器</div>
                   </div>
-                  <a-switch :model-value="!isTaskStatusHidden" @change="$emit('toggle-task-status')" type="round">
+                  <a-switch :model-value="!isTaskStatusHidden" @change="$emit('toggle-task-status', $event)" type="round">
                     <template #checked>开启</template>
                     <template #unchecked>关闭</template>
                   </a-switch>
@@ -45,7 +45,7 @@
                     <div class="row-label">显示客服图标</div>
                     <div class="row-desc">在页面右侧显示悬浮图标</div>
                   </div>
-                  <a-switch :model-value="!isKefuIconRemoved" @change="$emit('toggle-kefu-icon')" type="round">
+                  <a-switch :model-value="!isKefuIconRemoved" @change="$emit('toggle-kefu-icon', $event)" type="round">
                     <template #checked>开启</template>
                     <template #unchecked>关闭</template>
                   </a-switch>
