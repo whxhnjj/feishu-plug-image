@@ -292,13 +292,13 @@
             </div>
           </a-button> -->
 
-          <a-button class="btn-submit" :class="{ 'is-loading': submitting }" type="primary" shape="round"
+          <a-button class="btn-submit" :class="{ 'is-loading': submitting || runningTaskCount > 0 }" :disabled="submitting || runningTaskCount > 0" type="primary" shape="round"
             @click="handleSubmit">
             <div class="btn-content-inline">
-              <icon-loading spin v-if="submitting" />
+              <icon-loading spin v-if="submitting || runningTaskCount > 0" />
               <icon-thunderbolt v-else />
-              <span class="btn-text">{{ t('submit') }}</span>
-              <span v-if="recordIdList.length > 0 && estimatedPoints > 0" class="points-info-inline">
+              <span class="btn-text">{{ runningTaskCount > 0 ? '运行中...' : t('submit') }}</span>
+              <span v-if="recordIdList.length > 0 && estimatedPoints > 0 && runningTaskCount === 0" class="points-info-inline">
                 {{ t('consumePoints', { points: estimatedPoints }) }}
               </span>
             </div>
