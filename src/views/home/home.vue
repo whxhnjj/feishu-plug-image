@@ -344,93 +344,26 @@
       </div>
     </transition>
 
-    <!-- 自定义系统设置弹窗 -->
-    <transition name="modal-fade">
-      <div v-if="showSettingsModal" class="custom-modal-overlay" @click.self="showSettingsModal = false">
-        <div class="custom-modal-container" style="width: 280px;">
-          <div class="settings-modal-content">
-            <div class="settings-header">
-              <div class="header-left-box">
-                <div class="header-icon-bg">
-                  <icon-settings style="font-size: 18px; color: #fff;" />
-                </div>
-                <div class="header-text">
-                  <div class="settings-title">系统设置</div>
-                  <div class="settings-subtitle">System Settings</div>
-                </div>
-              </div>
-              <icon-close class="settings-close-icon" @click="showSettingsModal = false" />
-            </div>
+    <!-- 系统设置弹窗组件 -->
+    <SettingsModal
+      v-model="showSettingsModal"
+      :is-banner-hidden="isBannerHidden"
+      :is-task-status-hidden="isTaskStatusHidden"
+      :is-kefu-icon-removed="isKefuIconRemoved"
+      @toggle-banner="toggleBanner"
+      @toggle-task-status="toggleTaskStatus"
+      @toggle-kefu-icon="toggleKefuIcon"
+      @handle-web-url-click="handleWebUrlClick"
+      @handle-help-click="handleHelpClick"
+      @show-logs="showLogModal = true"
+    />
 
-            <div class="settings-body">
-              <div class="settings-group">
-                <div class="group-title">常规设置</div>
-                <div class="settings-card">
-                  <div class="settings-row">
-                    <div class="row-info">
-                      <div class="row-label">推广横幅</div>
-                      <div class="row-desc">显示顶部推广横幅及广告</div>
-                    </div>
-                    <a-switch :model-value="!isBannerHidden" @change="toggleBanner" type="round">
-                      <template #checked>开启</template>
-                      <template #unchecked>关闭</template>
-                    </a-switch>
-                  </div>
-                  <div class="settings-row">
-                    <div class="row-info">
-                      <div class="row-label">任务状态</div>
-                      <div class="row-desc">显示任务运行状态指示器</div>
-                    </div>
-                    <a-switch :model-value="!isTaskStatusHidden" @change="toggleTaskStatus" type="round">
-                      <template #checked>开启</template>
-                      <template #unchecked>关闭</template>
-                    </a-switch>
-                  </div>
-                  <div class="settings-row">
-                    <div class="row-info">
-                      <div class="row-label">显示客服图标</div>
-                      <div class="row-desc">在页面右侧显示悬浮图标</div>
-                    </div>
-                    <a-switch :model-value="!isKefuIconRemoved" @change="toggleKefuIcon" type="round">
-                      <template #checked>开启</template>
-                      <template #unchecked>关闭</template>
-                    </a-switch>
-                  </div>
-                </div>
-              </div>
-
-              <div class="settings-group">
-                <div class="group-title">支持</div>
-                <div class="settings-card">
-                  <div class="settings-row" @click="handleWebUrlClick" style="cursor: pointer;">
-                    <div class="row-info">
-                      <div class="row-label">查看官网</div>
-                      <div class="row-desc">访问我们的官方网站</div>
-                    </div>
-                    <icon-arrow-right style="color: #86909c; font-size: 14px;" />
-                  </div>
-                  <div class="settings-row" @click="handleHelpClick" style="cursor: pointer;">
-                    <div class="row-info">
-                      <div class="row-label">帮助中心</div>
-                      <div class="row-desc">查看使用教程及常见问题</div>
-                    </div>
-                    <icon-arrow-right style="color: #86909c; font-size: 14px;" />
-                  </div>
-                </div>
-              </div>
-
-              <!-- 预留后续扩展槽位 -->
-              <!-- <div class="settings-group">
-                <div class="group-title">其他设置</div>
-                <div class="settings-card">
-                   ...
-                </div>
-              </div> -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
+    <!-- 运行日志弹窗组件 -->
+    <LogModal
+      v-model="showLogModal"
+      :logs="logs"
+      @clear-logs="clearLogs"
+    />
   </div>
 </template>
 
@@ -445,6 +378,8 @@ import jp from './locales/jp.json';
 import './style.css';
 import useAppStore from '@/stores/app';
 import { mapState } from 'pinia';
+import SettingsModal from './com/SettingsModal.vue';
+import LogModal from './com/LogModal.vue';
 import {
   IconCloudDownload,
   IconEdit,
@@ -466,12 +401,17 @@ import {
   IconCustomerService,
   IconMessage,
   IconHistory,
-  IconSettings
+  IconSettings,
+  IconList,
+  IconDelete,
+  IconEmpty
 } from '@arco-design/web-vue/es/icon';
 import { AddTask, GetTaskStatus } from "@api/api/index";
 export default {
   name: 'Home',
   components: {
+    SettingsModal,
+    LogModal,
     IconCloudDownload,
     IconEdit,
     IconSync,
@@ -492,12 +432,17 @@ export default {
     IconCustomerService,
     IconMessage,
     IconHistory,
-    IconSettings
+    IconSettings,
+    IconList,
+    IconDelete,
+    IconEmpty
   },
   data() {
     return {
       showKefuModal: false,
       showSettingsModal: false,
+      showLogModal: false,
+      logs: JSON.parse(localStorage.getItem('FEIYU_PLUG_RUN_LOGS') || '[]'),
       memoryMode: 'once', // 'once' or 'remember'
       isKefuIconRemoved: localStorage.getItem('FEIYU_PLUG_IS_KEFU_ICON_REMOVED') === 'true',
       isTaskStatusHidden: localStorage.getItem('FEIYU_PLUG_IS_TASK_STATUS_HIDDEN') === 'true',
@@ -1053,13 +998,16 @@ export default {
       try {
         const hasPermission = await bitable.base.isEditable();
         if (!hasPermission) {
-          ui.showToast({ toastType: 'error', message: '您没有此表格的权限，终止任务运行。' });
+          const errMsg = '您没有此表格的权限，终止任务运行。';
+          ui.showToast({ toastType: 'error', message: errMsg });
+          this.addLog('权限错误', errMsg);
           this.isPaused = true;
           this.pollingTimer = null;
           return;
         }
       } catch (error) {
         console.error('Check permission error:', error);
+        this.addLog('检查权限失败', error.message);
         this.isPaused = true;
         this.pollingTimer = null;
         return;
@@ -1073,14 +1021,19 @@ export default {
 
       if (this.isPaused) return;
 
-      // 始终从 bridge 读取最新的任务ID
-      let currentStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
-      if (!Array.isArray(currentStoredTaskIds)) currentStoredTaskIds = [];
+      const MAX_POLLING_TASKS = 5;
 
-      this.runningTaskCount = currentStoredTaskIds.length;
-      if (currentStoredTaskIds.length === 0) {
+      // 始终从 bridge 读取最新的任务ID
+      let allStoredTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
+      if (!Array.isArray(allStoredTaskIds)) allStoredTaskIds = [];
+
+      this.runningTaskCount = allStoredTaskIds.length;
+      if (allStoredTaskIds.length === 0) {
         return;
       }
+
+      // 每次最多轮询指定数量的数据，如果总数不足，则全部轮询
+      const currentStoredTaskIds = allStoredTaskIds.slice(0, MAX_POLLING_TASKS);
 
       try {
         const res = await GetTaskStatus({ taskIds: currentStoredTaskIds });
@@ -1123,6 +1076,7 @@ export default {
                         console.log('[Task] Field "生成结果" created successfully.');
                       } catch (createError) {
                         console.error('[Task] Failed to create field "生成结果":', createError);
+                        this.addLog('创建“生成结果”字段失败', `TableID: ${task.table_id}\nError: ${createError.message}`);
                         throw new Error('Field "生成结果" access and creation failed');
                       }
                     }
@@ -1140,6 +1094,7 @@ export default {
                           console.log('[Task] Field "生成结果链接" created successfully.');
                         } catch (createError) {
                           console.error('[Task] Failed to create field "生成结果链接":', createError);
+                          this.addLog('创建“生成结果链接”字段失败', `TableID: ${task.table_id}\nError: ${createError.message}`);
                         }
                       }
 
@@ -1168,6 +1123,7 @@ export default {
                       }
                     } catch (urlFieldErr) {
                       console.error('[Task] Error processing "生成结果链接" field:', urlFieldErr);
+                      this.addLog('处理“生成结果链接”失败', `RowID: ${task.row_id}\nError: ${urlFieldErr.message}`);
                     }
 
                     // 2. 处理图片
@@ -1179,9 +1135,11 @@ export default {
                           fileList.push(file);
                         } else {
                           console.warn('[Task] Failed to convert url to file:', imgUrl);
+                          this.addLog('图片转换返回空', `URL: ${imgUrl}`);
                         }
                       } catch (err) {
                         console.error('[Task] Error processing image url:', imgUrl, err);
+                        this.addLog('处理图片URL失败', `URL: ${imgUrl}\nError: ${err.message}`);
                       }
                     }
 
@@ -1207,6 +1165,7 @@ export default {
                           newList = JSON.parse(JSON.stringify(newVal));
                         } catch (e) {
                           console.warn('Parse attachments error', e);
+                          this.addLog('解析附件数据失败', `Error: ${e.message}`);
                         }
 
                         const finalAttachments = [...oldList, ...newList];
@@ -1219,6 +1178,7 @@ export default {
                   }
                 } catch (err) {
                   console.error('[Task] Image upload logic error (continuing to cleanup):', err);
+                  this.addLog('图片上传逻辑错误', `TaskID: ${task.task_id}\nError: ${err.message}`);
                 }
 
                 // 3. 从列表中移除
@@ -1229,6 +1189,7 @@ export default {
               else if (task.status === -1) {
                 // 从列表中移除
                 nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
+                this.addLog('任务执行失败', `TaskID: ${task.task_id}\nStatusMsg: ${task.status_str}`);
               }
 
               const statusField = await table.getField('任务运行状态');
@@ -1244,6 +1205,7 @@ export default {
 
             } catch (innerErr) {
               console.error('Error updating task status:', innerErr);
+              this.addLog('更新任务状态失败', `TaskID: ${task.task_id}\nError: ${innerErr.message}`);
             }
           }
 
@@ -1274,11 +1236,15 @@ export default {
 
         } else {
           // API 错误，停止轮询
+          const errMsg = res?.msg || 'API 接口异常';
+          this.addLog('轮询状态接口错误', errMsg);
           this.pollingTimer = null;
           this.isPaused = true;
         }
       } catch (e) {
         // 发生错误，停止轮询
+        console.error('Poll status fatal error:', e);
+        this.addLog('轮询过程致命错误', e.message);
         this.pollingTimer = null;
         this.isPaused = true;
       }
@@ -1292,8 +1258,34 @@ export default {
         return new File([blob], filename, { type: blob.type });
       } catch (error) {
         console.error('urlToFile error:', error);
+        this.addLog('图片转换失败', `URL: ${url}\nError: ${error.message}`);
         return null;
       }
+    },
+    addLog(reason, detail) {
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${month}/${day} ${hours}:${minutes} ${seconds}`;
+
+      const newLog = {
+        time: timeStr,
+        reason: reason,
+        detail: typeof detail === 'string' ? detail : JSON.stringify(detail)
+      };
+
+      this.logs.unshift(newLog);
+      if (this.logs.length > 100) {
+        this.logs = this.logs.slice(0, 100);
+      }
+      localStorage.setItem('FEIYU_PLUG_RUN_LOGS', JSON.stringify(this.logs));
+    },
+    clearLogs() {
+      this.logs = [];
+      localStorage.setItem('FEIYU_PLUG_RUN_LOGS', JSON.stringify([]));
     },
     async handleReset() {
       this.initForm();
@@ -1897,127 +1889,6 @@ export default {
   }
 }
 
-/* 系统设置弹窗专属样式 */
-.settings-modal-content {
-  background: #f4f7f9;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.settings-header {
-  padding: 20px;
-  background: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-
-  .header-left-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .header-icon-bg {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #165dff 0%, #4080ff 100%);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(22, 93, 255, 0.2);
-  }
-
-  .header-text {
-    .settings-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1d2129;
-      line-height: 1.2;
-    }
-
-    .settings-subtitle {
-      font-size: 10px;
-      color: #86909c;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
-  }
-
-  .settings-close-icon {
-    cursor: pointer;
-    font-size: 16px;
-    color: #86909c;
-    transition: all 0.2s;
-
-    &:hover {
-      color: #1d2129;
-      transform: rotate(90deg);
-    }
-  }
-}
-
-.settings-body {
-  padding: 16px;
-  max-height: 600px;
-  overflow-y: auto;
-
-  .settings-group {
-    margin-bottom: 20px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .group-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: #4e5969;
-    margin-bottom: 8px;
-    padding-left: 4px;
-  }
-
-  .settings-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 4px 12px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-  }
-
-  .settings-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f7f8fa;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    .row-info {
-      flex: 1;
-      margin-right: 12px;
-    }
-
-    .row-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: #1d2129;
-    }
-
-    .row-desc {
-      font-size: 11px;
-      color: #86909c;
-      margin-top: 2px;
-    }
-  }
-}
 </style>
 <style lang="scss" scoped>
 .feiyu-home {
