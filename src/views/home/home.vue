@@ -1127,6 +1127,49 @@ export default {
                       }
                     }
 
+                    // 新功能：处理“生成结果链接”字段
+                    try {
+                      let outPutUrlField;
+                      try {
+                        outPutUrlField = await table.getField('生成结果链接');
+                      } catch (fieldError) {
+                        try {
+                          // 创建文本字段
+                          await table.addField({ type: FieldType.Text, name: '生成结果链接' });
+                          outPutUrlField = await table.getField('生成结果链接');
+                          console.log('[Task] Field "生成结果链接" created successfully.');
+                        } catch (createError) {
+                          console.error('[Task] Failed to create field "生成结果链接":', createError);
+                        }
+                      }
+
+                      if (outPutUrlField) {
+                        const newUrls = task.images.join('\n');
+                        // 获取旧数据
+                        const existingUrlVal = await outPutUrlField.getValue(task.row_id);
+                        let finalUrlString = newUrls;
+
+                        // 如果有旧数据，追加新数据，与附件逻辑保持一致
+                        if (existingUrlVal) {
+                          let existingText = '';
+                          if (typeof existingUrlVal === 'string') {
+                            existingText = existingUrlVal;
+                          } else if (Array.isArray(existingUrlVal)) {
+                            existingText = existingUrlVal.map(item => item.text || '').join('');
+                          }
+                          
+                          if (existingText) {
+                            finalUrlString = existingText + '\n' + newUrls;
+                          }
+                        }
+
+                        await outPutUrlField.setValue(task.row_id, finalUrlString);
+                        console.log('[Task] Image URLs inserted into "生成结果链接" successfully.');
+                      }
+                    } catch (urlFieldErr) {
+                      console.error('[Task] Error processing "生成结果链接" field:', urlFieldErr);
+                    }
+
                     // 2. 处理图片
                     const fileList = [];
                     for (const imgUrl of task.images) {
