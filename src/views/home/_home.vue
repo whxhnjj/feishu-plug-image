@@ -247,31 +247,13 @@
               <icon-image />
             </span>
             <div class="item-info">
-              <span class="label-text">套图组数</span>
+              <span class="label-text">每组套数</span>
             </div>
           </div>
           <div class="item-right">
             <a-select v-model="formData.tmpTotal" class="minimal-select" :placeholder="t('pleaseSelect')"
               :trigger-props="{ autoFitPopupMinWidth: true }">
-              <a-option v-for="n in 20" :key="n" :value="String(n)">每组 {{ n }} 套图</a-option>
-            </a-select>
-          </div>
-        </div>
-
-        <!-- 单套张数 -->
-        <div class="form-card-item">
-          <div class="item-left">
-            <span class="item-icon icon-fixed-0">
-              <icon-expand />
-            </span>
-            <div class="item-info">
-              <span class="label-text">单套张数</span>
-            </div>
-          </div>
-          <div class="item-right">
-            <a-select v-model="formData.total" class="minimal-select" :placeholder="t('pleaseSelect')"
-              :trigger-props="{ autoFitPopupMinWidth: true }">
-              <a-option v-for="n in 20" :key="n" :value="String(n)">单套 {{ n }} 张图</a-option>
+              <a-option v-for="n in 10" :key="n" :value="String(n)">{{ n }} 套</a-option>
             </a-select>
           </div>
         </div>
@@ -583,16 +565,6 @@ export default {
         this.calculatePoints();
       },
       deep: true
-    },
-    'formData.tmpTotal': {
-      handler() {
-        this.calculatePoints();
-      }
-    },
-    'formData.total': {
-      handler() {
-        this.calculatePoints();
-      }
     }
   },
   mounted() {
@@ -703,12 +675,37 @@ export default {
       }
 
       const unitPrice = modelData.points;
-      
-      // 中文注释：使用“单套张数”和“每组套数”来计算总消耗积分
-      const totalImagesPerRecord = Number(this.formData.total || 5) * Number(this.formData.tmpTotal || 1);
-      const totalNum = this.recordIdList.length * totalImagesPerRecord;
+      let totalNum = 0;
 
-      this.estimatedPoints = totalNum * unitPrice;
+      try {
+        // 如果没有 tableId，尝试从 selection 获取
+        let tableId = this.edit.tableId;
+        if (!tableId) {
+          const selection = await bitable.base.getSelection();
+          tableId = selection.tableId;
+        }
+        if (!tableId) return;
+
+        const table = await bitable.base.getTable(tableId);
+        const outPutImgNumField = await table.getField('输出图数量');
+
+        // 并行获取所有选中行的图片数量
+        const promises = this.recordIdList.map(async (rowId) => {
+          const val = await outPutImgNumField.getValue(rowId);
+          // 尝试转换为数字，如果是非数字则为 0
+          const num = parseInt(val?.text || 0, 10);
+          return isNaN(num) ? 0 : num;
+        });
+
+        const nums = await Promise.all(promises);
+        totalNum = nums.reduce((a, b) => a + b, 0);
+
+        this.estimatedPoints = totalNum * unitPrice;
+
+      } catch (e) {
+        console.error('Calculate points error:', e);
+        this.estimatedPoints = 0;
+      }
     },
     handleBannerClick(url) {
       if (url) {
@@ -738,10 +735,6 @@ export default {
         //  const res = jsonData;
         if (res.code === 200) {
           this.configList = res.data || [];
-          // 中文注释：过滤掉“输出图数量”相关配置，因为它已被“单套张数”取代
-          if (this.configList.fixedSetting) {
-            this.configList.fixedSetting = this.configList.fixedSetting.filter(item => item.title !== '输出图数量');
-          }
           this.webUrl = res?.domain || 'https://feishu.feiyushuju.com';
           this.initForm();
         } else {
@@ -836,17 +829,11 @@ export default {
         });
       }
 
-      // 4. 初始化套图数量与单套张数
+      // 4. 初始化套图数量
       if (isRemember && this.storedPreferences.tmpTotal !== undefined) {
         data.tmpTotal = this.storedPreferences.tmpTotal;
       } else {
         data.tmpTotal = '1'; // 默认 1 套
-      }
-
-      if (isRemember && this.storedPreferences.total !== undefined) {
-        data.total = this.storedPreferences.total;
-      } else {
-        data.total = '5'; // 默认 5 张
       }
 
       // 5. 初始化动态配置
@@ -896,32 +883,11 @@ export default {
         const table = await bitable.base.getTable(this.edit.tableId);
         const statusField = await table.getField('任务运行状态'); // 预取字段以确保存在
         const imgField = await table.getField('参考图');
+        const outPutImgNumField = await table.getField('输出图数量');
         const titleField = await table.getField('商品标题');
         const descField = await table.getField('产品描述');
         const progressField = await table.getField('任务进度');
-
-        // 套图结果x 和 套图链接x
-        // 中文注释：根据用户选择的套图组数，预先检测并按顺序创建必要的“套图结果”和“套图链接”字段
-        const maxSets = Number(this.formData.tmpTotal || 1);
-        const fieldMetaList = await table.getFieldMetaList();
-        const existingFieldNames = fieldMetaList.map(f => f.name);
-
-        for (let s = 1; s <= maxSets; s++) {
-          const resFieldTitle = `套图结果${s}`;
-          const urlFieldTitle = `套图链接${s}`;
-
-          // 检测并创建附件字段
-          if (!existingFieldNames.includes(resFieldTitle)) {
-            console.log(`Creating missing field: ${resFieldTitle}`);
-            await table.addField({ type: FieldType.Attachment, name: resFieldTitle });
-          }
-
-          // 检测并创建文本链接字段
-          if (!existingFieldNames.includes(urlFieldTitle)) {
-            console.log(`Creating missing field: ${urlFieldTitle}`);
-            await table.addField({ type: FieldType.Text, name: urlFieldTitle });
-          }
-        }
+        const resultField = await table.getField('生成结果');
 
         // 任务运行时，this.recordIdList 我需要批量将“生成结果”字段附件 内容先清空。 - 先注释
         // await Promise.all(this.recordIdList.map(rId => resultField.setValue(rId, []).catch(e => console.error('Clear field error', e))));
@@ -936,8 +902,8 @@ export default {
           const imgs = await imgField.getAttachmentUrls(rowId);
           this.edit.imgs = imgs; // 直接赋值数组或根据需要处理
 
-          // 中文注释：使用表单中的“单套张数”作为 total 提交给接口
-          this.edit.total = this.formData.total || '5';
+          const totalCellValue = await outPutImgNumField.getValue(rowId);
+          this.edit.total = totalCellValue?.text || 0;
 
           const titleCellValue = await titleField.getValue(rowId);
           // 中文注释：防御性处理 getValue 返回的数据，防止 map 报错（如存在 null/undefined 的项）
@@ -1334,25 +1300,6 @@ export default {
               }
               // 状态 -1: 失败
               else if (task.status === -1) {
-                const tmpNum = task.tmp_id ? Number(task.tmp_id) : 1; // 先读区套图链接 x
-                // 新功能：处理“生成结果链接”字段
-                const fieldGroupUrlTitle = `套图链接${ tmpNum }`;
-                let outPutUrlField;
-                try {
-                  outPutUrlField = await table.getField(fieldGroupUrlTitle);
-                } catch (fieldError) {
-                  try {
-                    // 如果没有 就 创建文本字段
-                    await table.addField({ type: FieldType.Text, name: fieldGroupUrlTitle });
-                    outPutUrlField = await table.getField(fieldGroupUrlTitle);
-                    console.log(`[Task] Field "${fieldGroupUrlTitle}" created successfully.`);
-                  } catch (createError) {
-                    console.error(`[Task] Failed to create field "${fieldGroupUrlTitle}":`, createError);
-                    this.addLog(`创建“${fieldGroupUrlTitle}”字段失败`, `TableID: ${task.table_id}\nError: ${createError.message}`);
-                  }
-                }
-                // 将失败字段文字写入字段
-                await outPutUrlField.setValue(task.row_id, task.status_str); 
                 // 从列表中移除
                 nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
                 this.addLog('任务执行失败', `TaskID: ${task.task_id}\nStatusMsg: ${task.status_str}`);
@@ -1659,6 +1606,57 @@ export default {
             console.error('Set default value for progress field failed:', e);
           }
 
+          // 3. 输出图数量
+          const outputFieldName = '输出图数量';
+          const numOptions = [];
+          for (let i = 1; i <= 20; i++) {
+            numOptions.push({ name: String(i) });
+          }
+
+          const existingOutputField = fieldMetaList.find(f => f.name === outputFieldName);
+          if (existingOutputField) {
+            if (existingOutputField.type !== FieldType.SingleSelect) {
+              console.log(`Converting ${outputFieldName} to SingleSelect`);
+              await table.setField(existingOutputField.id, {
+                type: FieldType.SingleSelect,
+                property: { options: numOptions }
+              });
+            }
+          } else {
+            await table.addField({
+              type: FieldType.SingleSelect,
+              name: outputFieldName,
+              property: { options: numOptions }
+            });
+          }
+
+          // --- 统一设置“输出图数量”默认值 ---
+          try {
+            const outputNumField = await table.getField(outputFieldName);
+            let outputOptions = await outputNumField.getOptions();
+
+            // 如果选项为空，重新设置
+            if (!outputOptions || outputOptions.length === 0) {
+              console.log('Options missing for output field, resetting options...');
+              await table.setField(outputNumField.id, { property: { options: numOptions } });
+              outputOptions = await outputNumField.getOptions();
+            }
+
+            const targetOutputOption = outputOptions.find(opt => opt.name === '5');
+            if (targetOutputOption) {
+              const view = await table.getViewById(viewId);
+              const recordIdList = await view.getVisibleRecordIdList();
+              for (const recordId of recordIdList) {
+                const val = await outputNumField.getValue(recordId);
+                if (!val) {
+                  await outputNumField.setValue(recordId, targetOutputOption.id);
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Set default value for output field failed:', e);
+          }
+
           // // 4. 生成结果 这个功能不需要了，先注释
           // const resultFieldName = '生成结果';
           // const existingResultField = fieldMetaList.find(f => f.name === resultFieldName);
@@ -1787,6 +1785,18 @@ export default {
           name: '任务进度',
           property: {
             formatter: '0%' // 尝试设置格式
+          }
+        });
+        // 字段6: 输出图数量 (单选 1-20)
+        const numOptions = [];
+        for (let i = 1; i <= 20; i++) {
+          numOptions.push({ name: String(i) });
+        }
+        await table.addField({
+          type: FieldType.SingleSelect,
+          name: '输出图数量',
+          property: {
+            options: numOptions
           }
         });
         // 字段7: 生成结果 (附件)
