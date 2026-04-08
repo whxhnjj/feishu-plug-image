@@ -4,10 +4,9 @@
     <transition name="fade">
       <div v-if="runningTaskCount > 0" class="running-banner">
         <div class="banner-content">
-          <icon-info-circle-fill class="banner-icon" />
           <div class="banner-text">
-            <div class="text-main">⚠️ 保持窗口开启</div>
-            <div class="text-sub">警告：关闭或切换此窗口将立即终止正在进行的操作，可能导致数据丢失</div>
+            <div class="text-main"><icon-loading class="banner-icon" spin />请保持窗口开启，任务运行中，请您耐心等待！</div>
+            <div class="text-sub"> ⚠️ 请勿删除任何运行中的多维表格或表格行，否则将导致任务异常。若因违规删除已生成的成功数据，造成数据无法回传至多维表格的情况，相关积分不予返还，且用户需自行承担数据丢失的责任。</div>
           </div>
         </div>
       </div>
@@ -399,6 +398,7 @@
       v-model="showLogModal"
       :logs="logs"
       @clear-logs="clearLogs"
+      @delete-log="handleDeleteLog"
     />
   </div>
 </template>
@@ -478,7 +478,7 @@ export default {
       showKefuModal: false,
       showSettingsModal: false,
       showLogModal: false,
-      logs: JSON.parse(localStorage.getItem('FEIYU_PLUG_RUN_LOGS') || '[]'),
+      logs: [], // 中文注释：日志数据改为异步加载
       memoryMode: 'once', // 'once' or 'remember'
       isKefuIconRemoved: localStorage.getItem('FEIYU_PLUG_IS_KEFU_ICON_REMOVED') === 'true',
       isTaskStatusHidden: localStorage.getItem('FEIYU_PLUG_IS_TASK_STATUS_HIDDEN') === 'true',
@@ -595,11 +595,21 @@ export default {
       }
     }
   },
-  mounted() {
+  async mounted() {
     this.indicatorTop = window.innerHeight - 150;
     this.getPlugAd();
     this.getPlugSelectField();
     this.pollTaskStatus(); // 加载时检查挂起的任务
+    
+    // 中文注释：初始化时从飞书存储加载运行日志
+    try {
+      const storedLogs = await bitable.bridge.getData('FEIYU_PLUG_RUN_LOGS');
+      if (Array.isArray(storedLogs)) {
+        this.logs = storedLogs;
+      }
+    } catch (e) {
+      console.error('Load logs error:', e);
+    }
   },
   // 新增：组件卸载前清理资源，防止内存泄露
   beforeUnmount() {
@@ -1151,7 +1161,6 @@ export default {
 
         // 如果原数组中有空项被移除，则立即同步更新存储
         if (allStoredTaskIds.length < rawTaskIds.length) {
-          console.log(`Removed ${rawTaskIds.length - allStoredTaskIds.length} empty task IDs`);
           await bitable.bridge.setData('FEIYU_PLUG_TASK_ID', allStoredTaskIds);
         }
 
@@ -1161,13 +1170,13 @@ export default {
         if (allStoredTaskIds.length === 0) {
           this._isPolling = false;
           this.pollingTimer = null;
+          this.runningTaskCount = 0; // 中文注释：确保 UI 状态更新为 0
           // 如果之前不是空的，则执行清空操作
           if (rawTaskIds.length > 0) {
             await bitable.bridge.setData('FEIYU_PLUG_TASK_ID', []);
           }
           return;
         }
-
         // 每次最多轮询指定数量的数据，如果总数不足，则全部轮询
         const currentStoredTaskIds = allStoredTaskIds.slice(0, MAX_POLLING_TASKS);
 
@@ -1177,7 +1186,6 @@ export default {
           this.pollingTimer = null;
           return;
         }
-
         const res = await GetTaskStatus({ taskIds: currentStoredTaskIds });
         if (this._isUnmounted) return;
         if (res && res.code === 200) {
@@ -1189,21 +1197,50 @@ export default {
           for (const task of tasks) {
             // 新增：循环中检查卸载状态
             if (this._isUnmounted) return;
-            // 检查此任务是否仍在最新列表中（可能已被其他进程移除，尽管在单线程JS中不太可能）
+            // 检查此任务是否仍在最新列表中
             if (!nextRoundTaskIds.includes(task.task_id)) continue;
 
-            if (!task.table_id || !task.row_id) continue;
+            if (!task.table_id || !task.row_id) {
+              this.addLog('任务数据缺失(table_id/row_id)', task);
+              continue;
+            }
+
+            // 中文注释：如果任务已完成(3)或已失败(-1)，无论后续表格操作是否成功，都应将其从轮询队列中移除
+            if (task.status === 3 || task.status === -1) {
+              nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
+            }
 
             try {
-              const table = await bitable.base.getTable(task.table_id);
-
+              let table;
+              try {
+                table = await bitable.base.getTable(task.table_id);
+              } catch (tableErr) {
+                console.error(`[Task] Table ${task.table_id} not found.`, tableErr);
+                this.addLog('数据表不存在或已被删除', task);
+                // 确保已从队列中移除（上面已经移除过一次，这里作为兜底）
+                nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
+                continue;
+              }
 
               // 状态 3: 已完成
               if (task.status === 3) {
+                // 中文注释：仅在状态为 3（已完成）时检查行是否存在，防止行被删除导致数据丢失
+                let isRowExist = false;
+                try {
+                  const rowData = await table.getRecordById(task.row_id);
+                  if (rowData) isRowExist = true;
+                } catch (rowErr) {
+                  console.warn(`[Task] Row ${task.row_id} not found during completion check.`, rowErr);
+                }
+
+                if (!isRowExist) {
+                  this.addLog('任务完成但行已被删除', task);
+                  continue;
+                }
+
                 // 图片处理块
                 try {
                   if (task.images && task.images.length > 0) {
-                    console.log('[Task] Processing images:', task.images.length);
                     const tmpNum = task.tmp_id ? Number(task.tmp_id) : 1; // 套图第几个td
                     const fieldTitle = `套图结果${ tmpNum }`;
                     // 1. 获取字段，特定错误处理
@@ -1222,7 +1259,7 @@ export default {
                         console.log(`[Task] Field "${fieldTitle}" created successfully.`);
                       } catch (createError) {
                         console.error(`[Task] Failed to create field "${fieldTitle}":`, createError);
-                        this.addLog(`创建“${fieldTitle}”字段失败`, `TableID: ${task.table_id}\nError: ${createError.message}`);
+                        this.addLog(`创建“${fieldTitle}”字段失败`, task);
                         throw new Error(`Field "${fieldTitle}" access and creation failed`);
                       }
                     }
@@ -1241,7 +1278,7 @@ export default {
                           console.log(`[Task] Field "${fieldGroupUrlTitle}" created successfully.`);
                         } catch (createError) {
                           console.error(`[Task] Failed to create field "${fieldGroupUrlTitle}":`, createError);
-                          this.addLog(`创建“${fieldGroupUrlTitle}”字段失败`, `TableID: ${task.table_id}\nError: ${createError.message}`);
+                          this.addLog(`创建“${fieldGroupUrlTitle}”字段失败`, task);
                         }
                       }
 
@@ -1260,6 +1297,12 @@ export default {
                             existingText = existingUrlVal.map(item => item.text || '').join('');
                           }
                           
+                          // 中文注释：如果旧数据中包含中文（通常是之前的错误提示文案），则将其清空，避免干扰新数据的展示
+                          const hasChinese = /[\u4e00-\u9fa5]/.test(existingText);
+                          if (hasChinese) {
+                            existingText = '';
+                          }
+
                           if (existingText) {
                             finalUrlString = existingText + '\n' + newUrls;
                           }
@@ -1270,7 +1313,7 @@ export default {
                       }
                     } catch (urlFieldErr) {
                       console.error(`[Task] Error processing "${fieldGroupUrlTitle}" field:`, urlFieldErr); 
-                      this.addLog(`处理“${fieldGroupUrlTitle}”失败`, `RowID: ${task.row_id}\nError: ${urlFieldErr.message}`);
+                      this.addLog(`处理“${fieldGroupUrlTitle}”失败`, task);
                     }
 
                     // 2. 处理图片
@@ -1282,11 +1325,11 @@ export default {
                           fileList.push(file);
                         } else {
                           console.warn('[Task] Failed to convert url to file:', imgUrl);
-                          this.addLog('图片转换返回空', `URL: ${imgUrl}`);
+                          this.addLog('图片转换返回空', task);
                         }
                       } catch (err) {
                         console.error('[Task] Error processing image url:', imgUrl, err);
-                        this.addLog('处理图片URL失败', `URL: ${imgUrl}\nError: ${err.message}`);
+                        this.addLog('处理图片URL失败', task);
                       }
                     }
 
@@ -1312,7 +1355,7 @@ export default {
                           newList = JSON.parse(JSON.stringify(newVal));
                         } catch (e) {
                           console.warn('Parse attachments error', e);
-                          this.addLog('解析附件数据失败', `Error: ${e.message}`);
+                          this.addLog('解析附件数据失败', task);
                         }
 
                         const finalAttachments = [...oldList, ...newList];
@@ -1323,14 +1366,12 @@ export default {
                       console.log('[Task] Images uploaded successfully (appended).');
                     }
                   }
+                  // 中文注释：任务执行成功，记录完整数据日志
+                  this.addLog('任务执行成功', task);
                 } catch (err) {
                   console.error('[Task] Image upload logic error (continuing to cleanup):', err);
-                  this.addLog('图片上传逻辑错误', `TaskID: ${task.task_id}\nError: ${err.message}`);
+                  this.addLog('图片上传逻辑错误', task);
                 }
-
-                // 3. 从列表中移除
-                console.log('[Task] Removing task ID:', task.task_id);
-                nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
               }
               // 状态 -1: 失败
               else if (task.status === -1) {
@@ -1348,14 +1389,12 @@ export default {
                     console.log(`[Task] Field "${fieldGroupUrlTitle}" created successfully.`);
                   } catch (createError) {
                     console.error(`[Task] Failed to create field "${fieldGroupUrlTitle}":`, createError);
-                    this.addLog(`创建“${fieldGroupUrlTitle}”字段失败`, `TableID: ${task.table_id}\nError: ${createError.message}`);
+                    this.addLog(`创建“${fieldGroupUrlTitle}”字段失败`, task);
                   }
                 }
                 // 将失败字段文字写入字段
                 await outPutUrlField.setValue(task.row_id, task.status_str); 
-                // 从列表中移除
-                nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
-                this.addLog('任务执行失败', `TaskID: ${task.task_id}\nStatusMsg: ${task.status_str}`);
+                this.addLog('任务执行失败', task);
               }
 
               const statusField = await table.getField('任务运行状态');
@@ -1371,7 +1410,7 @@ export default {
 
             } catch (innerErr) {
               console.error('Error updating task status:', innerErr);
-              this.addLog('更新任务状态失败', `TaskID: ${task.task_id}\nError: ${innerErr.message}`);
+              this.addLog('更新任务状态失败', task);
             }
           }
 
@@ -1391,22 +1430,37 @@ export default {
           const finalTaskIds = latestStoredIds.filter(id => !removedIds.includes(id));
 
           // 更新存储
-          await bitable.bridge.setData('FEIYU_PLUG_TASK_ID', finalTaskIds);
-          this.runningTaskCount = finalTaskIds.length;
+          try {
+            console.log('[Task] Syncing storage. Final IDs:', finalTaskIds);
+            await bitable.bridge.setData('FEIYU_PLUG_TASK_ID', finalTaskIds);
+            this.runningTaskCount = finalTaskIds.length;
+          } catch (storageErr) {
+            console.error('[Task] Failed to sync storage to bridge:', storageErr);
+            this.addLog('同步存储失败', storageErr.message);
+            // 即使存储同步失败，也尝试更新本地计数以反映 UI
+            this.runningTaskCount = finalTaskIds.length;
+          }
 
           // 如果任务仍存在，继续轮询
           if (finalTaskIds.length > 0 && !this.isPaused && !this._isUnmounted) {
             this.pollingTimer = setTimeout(() => {
               this.pollTaskStatus();
             }, 5000);
+          } else {
+            // 中文注释：任务处理完毕，停止定时器
+            this.pollingTimer = null;
           }
 
         } else {
-          // API 错误，停止轮询
+          // API 错误，更新本地状态并停止轮询
           const errMsg = res?.msg || 'API 接口异常';
           this.addLog('轮询状态接口错误', errMsg);
           this.pollingTimer = null;
           this.isPaused = true;
+          
+          // 中文注释：即使接口报错，也需要更新当前的运行任务计数
+          const latestIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
+          this.runningTaskCount = Array.isArray(latestIds) ? latestIds.length : 0;
         }
       } catch (e) {
         // 发生错误，停止轮询
@@ -1414,6 +1468,14 @@ export default {
         this.addLog('轮询过程致命错误', e.message);
         this.pollingTimer = null;
         this.isPaused = true;
+
+        // 中文注释：发生致命错误时，重新同步一次计数，确保 UI 状态正确
+        try {
+          const latestIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
+          this.runningTaskCount = Array.isArray(latestIds) ? latestIds.length : 0;
+        } catch (err) {
+          this.runningTaskCount = 0;
+        }
       } finally {
         this._isPolling = false;
       }
@@ -1431,30 +1493,58 @@ export default {
         return null;
       }
     },
-    addLog(reason, detail) {
+    async addLog(reason, detail) {
       const now = new Date();
+      const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      const timeStr = `${month}/${day} ${hours}:${minutes} ${seconds}`;
+      // 中文注释：更新时间格式为 年/月/日 时:分:秒
+      const timeStr = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
 
       const newLog = {
+        id: Date.now() + Math.random().toString(36).substr(2, 9), // 增加唯一ID用于单个删除
         time: timeStr,
         reason: reason,
         detail: typeof detail === 'string' ? detail : JSON.stringify(detail)
       };
 
-      this.logs.unshift(newLog);
-      if (this.logs.length > 100) {
-        this.logs = this.logs.slice(0, 100);
+      // 中文注释：改为从飞书存储异步获取并更新，且不再限制存储条数
+      try {
+        let currentLogs = await bitable.bridge.getData('FEIYU_PLUG_RUN_LOGS');
+        if (!Array.isArray(currentLogs)) currentLogs = [];
+        
+        currentLogs.unshift(newLog);
+        this.logs = currentLogs;
+        await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', currentLogs);
+      } catch (e) {
+        console.error('Add log error:', e);
+        // 兜底更新本地状态
+        this.logs.unshift(newLog);
       }
-      localStorage.setItem('FEIYU_PLUG_RUN_LOGS', JSON.stringify(this.logs));
     },
-    clearLogs() {
-      this.logs = [];
-      localStorage.setItem('FEIYU_PLUG_RUN_LOGS', JSON.stringify([]));
+    async clearLogs() {
+      // 中文注释：清空飞书存储中的日志
+      try {
+        this.logs = [];
+        await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', []);
+        ui.showToast({ toastType: 'success', message: '日志已清空' });
+      } catch (e) {
+        console.error('Clear logs error:', e);
+      }
+    },
+    async handleDeleteLog(logId) {
+      // 中文注释：删除单个日志并更新飞书存储
+      try {
+        const updatedLogs = this.logs.filter(log => log.id !== logId);
+        this.logs = updatedLogs;
+        await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', updatedLogs);
+        ui.showToast({ toastType: 'success', message: '日志已删除' });
+      } catch (e) {
+        console.error('Delete log error:', e);
+      }
     },
     async handleReset() {
       this.initForm();
@@ -2001,7 +2091,7 @@ export default {
 .kefu-float-icon {
   position: fixed;
   right: 12px;
-  top: 155px;
+  top: 170px;
   width: 32px;
   height: 32px;
   background-color: #fff;
