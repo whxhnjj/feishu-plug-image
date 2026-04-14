@@ -6,7 +6,8 @@
         <div class="banner-content">
           <div class="banner-text">
             <div class="text-main"><icon-loading class="banner-icon" spin />请保持窗口开启，任务运行中，请您耐心等待！</div>
-            <div class="text-sub"> ⚠️ 请勿删除任何运行中的多维表格或表格行，否则将导致任务异常。若因违规删除已生成的成功数据，造成数据无法回传至多维表格的情况，相关积分不予返还，且用户需自行承担数据丢失的责任。</div>
+            <div class="text-sub"> ⚠️
+              请勿删除任何运行中的多维表格或表格行，否则将导致任务异常。若因违规删除已生成的成功数据，造成数据无法回传至多维表格的情况，相关积分不予返还，且用户需自行承担数据丢失的责任。</div>
           </div>
         </div>
       </div>
@@ -28,6 +29,21 @@
       </a-carousel>
     </div>
 
+    <!-- 联系客服 -->
+    <div v-if="!isKefuIconRemoved" class="kefu-contact-strip" @click="handleKefuClick">
+      <div class="kefu-contact-left">
+        <icon-customer-service />
+      </div>
+      <div class="kefu-contact-main">
+        <div class="kefu-contact-title">联系客服</div>
+        <div class="kefu-contact-desc">7 * 24小时在线服务</div>
+      </div>
+      <div class="kefu-contact-cta">
+        <span>立即联系</span>
+        <icon-arrow-right />
+      </div>
+    </div>
+
     <!-- API key 设置 -->
     <div class="api-key-section">
       <div class="section-header">
@@ -39,7 +55,8 @@
               <icon-question-circle />
             </span>
           </a-tooltip>
-          <a v-if="webUrl" :href="webUrl + '/app/user-center'" target="_blank" class="link-text">{{ t('getApiKey') }}</a>
+          <a v-if="webUrl" :href="webUrl + '/app/user-center'" target="_blank" class="link-text">{{ t('getApiKey')
+            }}</a>
         </div>
         <div class="header-right">
           <a-button v-if="!isEditingApiKey" type="text" size="small" @click="startEditApiKey">
@@ -128,12 +145,14 @@
             <a-select v-model="formData[configList.model.field]" class="minimal-select" allow-search
               :placeholder="t('pleaseSelect')" :trigger-props="{ autoFitPopupMinWidth: true }">
               <template #label="{ data }">
-                <div v-if="data" class="model-option-left" style="gap: 4px;">
+                <div v-if="data" class="model-option-left" style="gap: 4px; min-width: 0; width: 100%;">
                   <div class="model-icon-box" style="width: 20px; height: 20px; border-radius: 4px;">
                     <img :src="getImgSrc(data.value)" alt="icon" class="model-icon-img"
                       style="width: 12px; height: 12px;" />
                   </div>
-                  <span class="model-name" style="font-size: 13px;">{{ data.label }}</span>
+                  <span class="model-name"
+                    style="font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
+                      data.label }}</span>
                 </div>
               </template>
               <a-option v-for="opt in configList.model.value" :key="opt.value" :value="opt.value" :label="opt.name">
@@ -246,7 +265,15 @@
               <icon-image />
             </span>
             <div class="item-info">
-              <span class="label-text">套图组数</span>
+              <div class="label-with-help">
+                <span class="label-text">套图组数</span>
+                <a-tooltip trigger="hover" position="top"
+                  content="套图组数：指每行多维表格数据生成的套图数量。选择2组则生成2套图及对应2列，选择3组则生成3套图及对应3列，以此类推。">
+                  <span class="label-help-icon">
+                    <icon-question-circle />
+                  </span>
+                </a-tooltip>
+              </div>
             </div>
           </div>
           <div class="item-right">
@@ -264,7 +291,15 @@
               <icon-expand />
             </span>
             <div class="item-info">
-              <span class="label-text">单套张数</span>
+              <div class="label-with-help">
+                <span class="label-text">单套张数</span>
+                <a-tooltip trigger="hover" position="top"
+                  content="单套张数：指每组套图内含的图片张数。若套图组数设为3、单套张数设为5，则每行数据共生成15张图（3组×5张），并以3列形式分别展示每组套图。">
+                  <span class="label-help-icon">
+                    <icon-question-circle />
+                  </span>
+                </a-tooltip>
+              </div>
             </div>
           </div>
           <div class="item-right">
@@ -327,13 +362,14 @@
             </div>
           </a-button> -->
 
-          <a-button class="btn-submit" :class="{ 'is-loading': submitting || runningTaskCount > 0 }" :disabled="submitting || runningTaskCount > 0" type="primary" shape="round"
-            @click="handleSubmit">
+          <a-button class="btn-submit" :class="{ 'is-loading': submitting || runningTaskCount > 0 }"
+            :disabled="submitting || runningTaskCount > 0" type="primary" shape="round" @click="handleSubmit">
             <div class="btn-content-inline">
               <icon-loading spin v-if="submitting || runningTaskCount > 0" />
               <icon-thunderbolt v-else />
               <span class="btn-text">{{ runningTaskCount > 0 ? '运行中...' : t('submit') }}</span>
-              <span v-if="recordIdList.length > 0 && estimatedPoints > 0 && runningTaskCount === 0" class="points-info-inline">
+              <span v-if="recordIdList.length > 0 && estimatedPoints > 0 && runningTaskCount === 0"
+                class="points-info-inline">
                 {{ t('consumePoints', { points: estimatedPoints }) }}
               </span>
             </div>
@@ -343,10 +379,10 @@
       </div>
     </div>
 
-    <!-- 联系客服悬浮图标 -->
-    <div v-if="!isKefuIconRemoved" class="kefu-float-icon" @click="handleKefuClick">
+    <!-- 联系客服悬浮图标（旧设计，暂时注释保留） -->
+    <!-- <div v-if="!isKefuIconRemoved" class="kefu-float-icon" @click="handleKefuClick">
       <icon-customer-service />
-    </div>
+    </div> -->
 
     <!-- 自定义联系客服弹窗 -->
     <transition name="modal-fade">
@@ -380,26 +416,13 @@
     </transition>
 
     <!-- 系统设置弹窗组件 -->
-    <SettingsModal
-      v-model="showSettingsModal"
-      :is-banner-hidden="isBannerHidden"
-      :is-task-status-hidden="isTaskStatusHidden"
-      :is-kefu-icon-removed="isKefuIconRemoved"
-      @toggle-banner="toggleBanner"
-      @toggle-task-status="toggleTaskStatus"
-      @toggle-kefu-icon="toggleKefuIcon"
-      @handle-web-url-click="handleWebUrlClick"
-      @handle-help-click="handleHelpClick"
-      @show-logs="showLogModal = true"
-    />
+    <SettingsModal v-model="showSettingsModal" :is-banner-hidden="isBannerHidden"
+      :is-task-status-hidden="isTaskStatusHidden" :is-kefu-icon-removed="isKefuIconRemoved"
+      @toggle-banner="toggleBanner" @toggle-task-status="toggleTaskStatus" @toggle-kefu-icon="toggleKefuIcon"
+      @handle-web-url-click="handleWebUrlClick" @handle-help-click="handleHelpClick" @show-logs="showLogModal = true" />
 
     <!-- 运行日志弹窗组件 -->
-    <LogModal
-      v-model="showLogModal"
-      :logs="logs"
-      @clear-logs="clearLogs"
-      @delete-log="handleDeleteLog"
-    />
+    <LogModal v-model="showLogModal" :logs="logs" @clear-logs="clearLogs" @delete-log="handleDeleteLog" />
   </div>
 </template>
 
@@ -600,7 +623,7 @@ export default {
     this.getPlugAd();
     this.getPlugSelectField();
     this.pollTaskStatus(); // 加载时检查挂起的任务
-    
+
     // 中文注释：初始化时从飞书存储加载运行日志
     try {
       const storedLogs = await bitable.bridge.getData('FEIYU_PLUG_RUN_LOGS');
@@ -713,7 +736,7 @@ export default {
       }
 
       const unitPrice = modelData.points;
-      
+
       // 中文注释：使用“单套张数”和“每组套数”来计算总消耗积分
       const totalImagesPerRecord = Number(this.formData.total || 5) * Number(this.formData.tmpTotal || 1);
       const totalNum = this.recordIdList.length * totalImagesPerRecord;
@@ -913,7 +936,7 @@ export default {
         // 套图结果x 和 套图链接x
         // 中文注释：根据用户选择的套图组数，预先检测并按顺序创建必要的“套图结果”和“套图链接”字段
         const maxSets = Number(this.formData.tmpTotal || 1);
-        const fieldMetaList = await table.getFieldMetaList();
+        const fieldMetaList = await table.getFieldMetaList() || [];
         const existingFieldNames = fieldMetaList.map(f => f.name);
 
         for (let s = 1; s <= maxSets; s++) {
@@ -951,21 +974,21 @@ export default {
 
           const titleCellValue = await titleField.getValue(rowId);
           // 中文注释：防御性处理 getValue 返回的数据，防止 map 报错（如存在 null/undefined 的项）
-          this.edit.title = Array.isArray(titleCellValue) 
-            ? titleCellValue.filter(item => item && item.text).map(item => item.text).join('\n') 
+          this.edit.title = Array.isArray(titleCellValue)
+            ? titleCellValue.filter(item => item && item.text).map(item => item.text).join('\n')
             : (titleCellValue?.text || (typeof titleCellValue === 'string' ? titleCellValue : ''));
 
           const descCellValue = await descField.getValue(rowId);
           // 中文注释：同上，确保在处理富文本或普通文本时逻辑健壮
-          this.edit.desc = Array.isArray(descCellValue) 
-            ? descCellValue.filter(item => item && item.text).map(item => item.text).join('\n') 
+          this.edit.desc = Array.isArray(descCellValue)
+            ? descCellValue.filter(item => item && item.text).map(item => item.text).join('\n')
             : (descCellValue?.text || (typeof descCellValue === 'string' ? descCellValue : ''));
           try {
             const res = await AddTask({ ...this.edit, ...this.formData });
 
             if (res.code === 200) {
               const taskList = Array.isArray(res.data) ? res.data : [res.data];
-              
+
               // 存储任务ID
               let storedTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
               if (!Array.isArray(storedTaskIds)) storedTaskIds = [];
@@ -1152,10 +1175,10 @@ export default {
         // 始终从 bridge 读取最新的任务ID
         let rawTaskIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
         if (this._isUnmounted) return;
-        
+
         // 确保是数组
         if (!Array.isArray(rawTaskIds)) rawTaskIds = [];
-        
+
         // 移除空项（null, undefined, 空字符串等）
         const allStoredTaskIds = rawTaskIds.filter(id => id && String(id).trim() !== '');
 
@@ -1242,7 +1265,7 @@ export default {
                 try {
                   if (task.images && task.images.length > 0) {
                     const tmpNum = task.tmp_id ? Number(task.tmp_id) : 1; // 套图第几个td
-                    const fieldTitle = `套图结果${ tmpNum }`;
+                    const fieldTitle = `套图结果${tmpNum}`;
                     // 1. 获取字段，特定错误处理
                     let outPutImgField;
                     try {
@@ -1250,7 +1273,7 @@ export default {
                     } catch (fieldError) {
                       try {
                         // 打印所有字段以供调试
-                        const fieldList = await table.getFieldList();
+                        const fieldList = await table.getFieldList() || [];
                         const fieldNames = await Promise.all(fieldList.map(f => f.getName()));
 
                         // 创建字段
@@ -1265,7 +1288,7 @@ export default {
                     }
 
                     // 新功能：处理“生成结果链接”字段
-                    const fieldGroupUrlTitle = `套图链接${ tmpNum }`;
+                    const fieldGroupUrlTitle = `套图链接${tmpNum}`;
                     try {
                       let outPutUrlField;
                       try {
@@ -1296,7 +1319,7 @@ export default {
                           } else if (Array.isArray(existingUrlVal)) {
                             existingText = existingUrlVal.map(item => item.text || '').join('');
                           }
-                          
+
                           // 中文注释：如果旧数据中包含中文（通常是之前的错误提示文案），则将其清空，避免干扰新数据的展示
                           const hasChinese = /[\u4e00-\u9fa5]/.test(existingText);
                           if (hasChinese) {
@@ -1312,7 +1335,7 @@ export default {
                         console.log(`[Task] Image URLs inserted into "${fieldGroupUrlTitle}" successfully.`);
                       }
                     } catch (urlFieldErr) {
-                      console.error(`[Task] Error processing "${fieldGroupUrlTitle}" field:`, urlFieldErr); 
+                      console.error(`[Task] Error processing "${fieldGroupUrlTitle}" field:`, urlFieldErr);
                       this.addLog(`处理“${fieldGroupUrlTitle}”失败`, task);
                     }
 
@@ -1377,7 +1400,7 @@ export default {
               else if (task.status === -1) {
                 const tmpNum = task.tmp_id ? Number(task.tmp_id) : 1; // 先读区套图链接 x
                 // 新功能：处理“生成结果链接”字段
-                const fieldGroupUrlTitle = `套图链接${ tmpNum }`;
+                const fieldGroupUrlTitle = `套图链接${tmpNum}`;
                 let outPutUrlField;
                 try {
                   outPutUrlField = await table.getField(fieldGroupUrlTitle);
@@ -1393,7 +1416,7 @@ export default {
                   }
                 }
                 // 将失败字段文字写入字段
-                await outPutUrlField.setValue(task.row_id, task.status_str); 
+                await outPutUrlField.setValue(task.row_id, task.status_str);
                 this.addLog('任务执行失败', task);
               }
 
@@ -1457,7 +1480,7 @@ export default {
           this.addLog('轮询状态接口错误', errMsg);
           this.pollingTimer = null;
           this.isPaused = true;
-          
+
           // 中文注释：即使接口报错，也需要更新当前的运行任务计数
           const latestIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
           this.runningTaskCount = Array.isArray(latestIds) ? latestIds.length : 0;
@@ -1515,7 +1538,7 @@ export default {
       try {
         let currentLogs = await bitable.bridge.getData('FEIYU_PLUG_RUN_LOGS');
         if (!Array.isArray(currentLogs)) currentLogs = [];
-        
+
         currentLogs.unshift(newLog);
         this.logs = currentLogs;
         await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', currentLogs);
@@ -1601,7 +1624,7 @@ export default {
         const requiredFields = ['商品标题', '产品描述', '参考图'];
         try {
           const table = await bitable.base.getTable(tableId);
-          const fieldMetaList = await table.getFieldMetaList();
+          const fieldMetaList = await table.getFieldMetaList() || [];
           const existingFieldNames = fieldMetaList.map(field => field.name);
 
           const missingFields = requiredFields.filter(field => !existingFieldNames.includes(field));
@@ -1772,32 +1795,32 @@ export default {
 
         // 获取多选，选中的表格数据 recordIdList 是一个数组，表格的ID
         const selectedIds = await bitable.ui.selectRecordIdList(tableId, viewId);
-        
+
         // 过滤：如果“商品标题”和“产品描述”都没有值，则过滤掉该行
         const table = await bitable.base.getTable(tableId);
         const titleField = await table.getField('商品标题');
         const descField = await table.getField('产品描述');
-        
+
         const validIds = [];
         for (const recordId of selectedIds) {
           const titleVal = await titleField.getValue(recordId);
           const descVal = await descField.getValue(recordId);
-          
+
           // 中文注释：使用健壮的判断方式检查是否有值，支持字符串、富文本数组等格式
-          const hasTitle = Array.isArray(titleVal) 
-            ? titleVal.some(t => t && t.text) 
+          const hasTitle = Array.isArray(titleVal)
+            ? titleVal.some(t => t && t.text)
             : !!(titleVal?.text || (typeof titleVal === 'string' ? titleVal : ''));
-          const hasDesc = Array.isArray(descVal) 
-            ? descVal.some(t => t && t.text) 
+          const hasDesc = Array.isArray(descVal)
+            ? descVal.some(t => t && t.text)
             : !!(descVal?.text || (typeof descVal === 'string' ? descVal : ''));
-          
+
           if (hasTitle || hasDesc) {
             validIds.push(recordId);
           }
         }
-        
+
         this.recordIdList = validIds;
-        
+
         if (selectedIds.length > 0 && validIds.length === 0) {
           ui.showToast({ toastType: 'warning', message: '选中的数据中，“商品标题”和“产品描述”均为空，已自动过滤' });
         } else if (validIds.length < selectedIds.length) {
@@ -1825,7 +1848,7 @@ export default {
 
       try {
         // 1. 获取所有数据表，用于生成不重复的表名
-        const tableList = await bitable.base.getTableList();
+        const tableList = await bitable.base.getTableList() || [];
         const names = await Promise.all(tableList.map(table => table.getName()));
 
         let newName = '飞鱼数据表';
@@ -2115,7 +2138,6 @@ export default {
     font-size: 18px;
   }
 }
-
 </style>
 <style lang="scss" scoped>
 .feiyu-home {
@@ -2129,7 +2151,7 @@ export default {
 
 /* 轮播图区域 */
 .banner-section {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 
   .banner-item {
     height: 100%;
@@ -2145,6 +2167,80 @@ export default {
       height: 100%;
       object-fit: cover;
     }
+  }
+}
+
+.kefu-contact-strip {
+  min-height: 48px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(114, 192, 255, 0.32);
+  background: linear-gradient(95deg, rgba(231, 247, 255, 0.95) 0%, rgba(236, 255, 251, 0.96) 100%);
+  box-shadow: 0 4px 12px rgba(85, 170, 230, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(114, 192, 255, 0.5);
+    box-shadow: 0 8px 18px rgba(85, 170, 230, 0.14);
+    transform: translateY(-1px);
+  }
+
+  .kefu-contact-left {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2f9fe8;
+    background: linear-gradient(145deg, rgba(181, 231, 255, 0.55) 0%, rgba(184, 245, 232, 0.5) 100%);
+    flex-shrink: 0;
+
+    .arco-icon {
+      font-size: 18px;
+    }
+  }
+
+  .kefu-contact-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+
+    .kefu-contact-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--custom-text-color);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kefu-contact-desc {
+      font-size: 12px;
+      color: var(--color-text-2);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .kefu-contact-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: #2f9fe8;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
   }
 }
 
@@ -2530,6 +2626,13 @@ export default {
       flex: 1;
       min-width: 0;
 
+      .label-with-help {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+      }
+
       .label-text {
         font-size: 15px;
         font-weight: 500;
@@ -2537,6 +2640,21 @@ export default {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+
+      .label-help-icon {
+        display: inline-flex;
+        align-items: center;
+        color: var(--color-text-3);
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        transition: color 0.2s;
+        flex-shrink: 0;
+
+        &:hover {
+          color: rgb(var(--primary-6));
+        }
       }
     }
   }
