@@ -1010,11 +1010,22 @@ export default {
               await statusField.setValue(rowId, mainTask.status_str);
 
             } else {
+              // 中文注释：记录接口返回失败详情，便于排查任务提交问题
+              this.addLog('提交任务失败(AddTask非200)', {
+                rowId,
+                res
+              });
               ui.showToast({ toastType: 'error', message: res.msg || '任务提交失败' });
               break; // 出错时停止循环
             }
           } catch (err) {
             console.error(err);
+            // 中文注释：记录异常详情，包含错误信息和堆栈
+            this.addLog('提交任务异常(AddTask异常)', {
+              rowId,
+              message: err?.message || String(err),
+              stack: err?.stack || ''
+            });
             ui.showToast({ toastType: 'error', message: '提交任务时发生错误' });
             break;
           }
