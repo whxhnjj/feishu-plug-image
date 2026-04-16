@@ -56,7 +56,7 @@
             </span>
           </a-tooltip>
           <a v-if="webUrl" :href="webUrl + '/app/user-center'" target="_blank" class="link-text">{{ t('getApiKey')
-          }}</a>
+            }}</a>
         </div>
         <div class="header-right">
           <a-button v-if="!isEditingApiKey" type="text" size="small" @click="startEditApiKey">
@@ -1546,45 +1546,23 @@ export default {
         detail: typeof detail === 'string' ? detail : JSON.stringify(detail)
       };
 
-      // 中文注释：仅保留近30天日志，超出时间窗口的数据会被清理
-      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-      const cutoffTs = Date.now() - THIRTY_DAYS_MS;
-      const getLogTimestamp = (log) => {
-        if (log && typeof log.createdAt === 'number' && Number.isFinite(log.createdAt)) {
-          return log.createdAt;
-        }
-        if (log && typeof log.time === 'string') {
-          const match = log.time.match(/^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
-          if (match) {
-            const [, y, m, d, hh, mm, ss] = match;
-            return new Date(
-              Number(y),
-              Number(m) - 1,
-              Number(d),
-              Number(hh),
-              Number(mm),
-              Number(ss)
-            ).getTime();
-          }
-        }
-        return 0;
-      };
+      // 中文注释：仅保留最新100条日志，超过的旧日志会被截断
+      const MAX_LOGS = 100;
 
       try {
         let currentLogs = await bitable.bridge.getData('FEIYU_PLUG_RUN_LOGS');
         if (!Array.isArray(currentLogs)) currentLogs = [];
 
-        const recentLogs = currentLogs.filter(log => getLogTimestamp(log) >= cutoffTs);
-        recentLogs.unshift(newLog);
-        this.logs = recentLogs;
-        await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', recentLogs);
+        currentLogs.unshift(newLog);
+        const cappedLogs = currentLogs.slice(0, MAX_LOGS);
+        this.logs = cappedLogs;
+        await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', cappedLogs);
       } catch (e) {
         console.error('Add log error:', e);
-        // 兜底更新本地状态：同样保留近30天
+        // 兜底更新本地状态：同样限制最多100条
         const fallbackLogs = Array.isArray(this.logs) ? this.logs : [];
-        const recentFallbackLogs = fallbackLogs.filter(log => getLogTimestamp(log) >= cutoffTs);
-        recentFallbackLogs.unshift(newLog);
-        this.logs = recentFallbackLogs;
+        fallbackLogs.unshift(newLog);
+        this.logs = fallbackLogs.slice(0, MAX_LOGS);
       }
     },
     async clearLogs() {
