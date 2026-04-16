@@ -56,7 +56,7 @@
             </span>
           </a-tooltip>
           <a v-if="webUrl" :href="webUrl + '/app/user-center'" target="_blank" class="link-text">{{ t('getApiKey')
-            }}</a>
+          }}</a>
         </div>
         <div class="header-right">
           <a-button v-if="!isEditingApiKey" type="text" size="small" @click="startEditApiKey">
@@ -1170,6 +1170,7 @@ export default {
       }
 
       const MAX_POLLING_TASKS = 5;
+      const normalizeId = id => String(id).trim();
 
       try {
         // 始终从 bridge 读取最新的任务ID
@@ -1179,11 +1180,13 @@ export default {
         // 确保是数组
         if (!Array.isArray(rawTaskIds)) rawTaskIds = [];
 
-        // 移除空项（null, undefined, 空字符串等）
-        const allStoredTaskIds = rawTaskIds.filter(id => id && String(id).trim() !== '');
+        // 统一标准化任务ID（字符串化）并移除空项（null, undefined, 空字符串等）
+        const allStoredTaskIds = rawTaskIds
+          .map(id => (id === null || id === undefined ? '' : normalizeId(id)))
+          .filter(id => id !== '');
 
-        // 如果原数组中有空项被移除，则立即同步更新存储
-        if (allStoredTaskIds.length < rawTaskIds.length) {
+        // 如果标准化后与原存储不一致（例如类型不一致或存在空项），立即同步更新存储
+        if (JSON.stringify(allStoredTaskIds) !== JSON.stringify(rawTaskIds)) {
           await bitable.bridge.setData('FEIYU_PLUG_TASK_ID', allStoredTaskIds);
         }
 
@@ -1212,7 +1215,11 @@ export default {
         const res = await GetTaskStatus({ taskIds: currentStoredTaskIds });
         if (this._isUnmounted) return;
         if (res && res.code === 200) {
-          const tasks = Array.isArray(res.data) ? res.data : [res.data];
+          const taskCandidates = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+          const tasks = taskCandidates.filter(task => {
+            if (!task || task.task_id === null || task.task_id === undefined) return false;
+            return normalizeId(task.task_id) !== '';
+          });
 
           // 使用新的ID副本进行过滤
           let nextRoundTaskIds = [...currentStoredTaskIds];
@@ -1220,8 +1227,9 @@ export default {
           for (const task of tasks) {
             // 新增：循环中检查卸载状态
             if (this._isUnmounted) return;
+            const taskId = normalizeId(task.task_id);
             // 检查此任务是否仍在最新列表中
-            if (!nextRoundTaskIds.includes(task.task_id)) continue;
+            if (!nextRoundTaskIds.includes(taskId)) continue;
 
             if (!task.table_id || !task.row_id) {
               this.addLog('任务数据缺失(table_id/row_id)', task);
@@ -1230,7 +1238,7 @@ export default {
 
             // 中文注释：如果任务已完成(3)或已失败(-1)，无论后续表格操作是否成功，都应将其从轮询队列中移除
             if (task.status === 3 || task.status === -1) {
-              nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
+              nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== taskId);
             }
 
             try {
@@ -1241,7 +1249,7 @@ export default {
                 console.error(`[Task] Table ${task.table_id} not found.`, tableErr);
                 this.addLog('数据表不存在或已被删除', task);
                 // 确保已从队列中移除（上面已经移除过一次，这里作为兜底）
-                nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== task.task_id);
+                nextRoundTaskIds = nextRoundTaskIds.filter(id => id !== taskId);
                 continue;
               }
 
@@ -1441,6 +1449,9 @@ export default {
           let latestStoredIds = await bitable.bridge.getData('FEIYU_PLUG_TASK_ID');
           if (this._isUnmounted) return;
           if (!Array.isArray(latestStoredIds)) latestStoredIds = [];
+          latestStoredIds = latestStoredIds
+            .map(id => (id === null || id === undefined ? '' : normalizeId(id)))
+            .filter(id => id !== '');
 
           // 计算应保留哪些 ID：
           // (存储中的最新 ID) 减去 (我们在本次循环中完成/失败的 ID)
@@ -1529,23 +1540,51 @@ export default {
 
       const newLog = {
         id: Date.now() + Math.random().toString(36).substr(2, 9), // 增加唯一ID用于单个删除
+        createdAt: Date.now(),
         time: timeStr,
         reason: reason,
         detail: typeof detail === 'string' ? detail : JSON.stringify(detail)
       };
 
-      // 中文注释：改为从飞书存储异步获取并更新，且不再限制存储条数
+      // 中文注释：仅保留近30天日志，超出时间窗口的数据会被清理
+      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+      const cutoffTs = Date.now() - THIRTY_DAYS_MS;
+      const getLogTimestamp = (log) => {
+        if (log && typeof log.createdAt === 'number' && Number.isFinite(log.createdAt)) {
+          return log.createdAt;
+        }
+        if (log && typeof log.time === 'string') {
+          const match = log.time.match(/^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
+          if (match) {
+            const [, y, m, d, hh, mm, ss] = match;
+            return new Date(
+              Number(y),
+              Number(m) - 1,
+              Number(d),
+              Number(hh),
+              Number(mm),
+              Number(ss)
+            ).getTime();
+          }
+        }
+        return 0;
+      };
+
       try {
         let currentLogs = await bitable.bridge.getData('FEIYU_PLUG_RUN_LOGS');
         if (!Array.isArray(currentLogs)) currentLogs = [];
 
-        currentLogs.unshift(newLog);
-        this.logs = currentLogs;
-        await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', currentLogs);
+        const recentLogs = currentLogs.filter(log => getLogTimestamp(log) >= cutoffTs);
+        recentLogs.unshift(newLog);
+        this.logs = recentLogs;
+        await bitable.bridge.setData('FEIYU_PLUG_RUN_LOGS', recentLogs);
       } catch (e) {
         console.error('Add log error:', e);
-        // 兜底更新本地状态
-        this.logs.unshift(newLog);
+        // 兜底更新本地状态：同样保留近30天
+        const fallbackLogs = Array.isArray(this.logs) ? this.logs : [];
+        const recentFallbackLogs = fallbackLogs.filter(log => getLogTimestamp(log) >= cutoffTs);
+        recentFallbackLogs.unshift(newLog);
+        this.logs = recentFallbackLogs;
       }
     },
     async clearLogs() {
