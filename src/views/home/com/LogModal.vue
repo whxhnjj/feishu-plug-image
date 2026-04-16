@@ -10,7 +10,7 @@
               </div>
               <div class="header-text">
                 <div class="log-title">运行日志</div>
-                <div class="log-subtitle">Running Logs</div>
+                <div class="log-subtitle">当前总日志：{{ totalLogCount }} 条</div>
               </div>
             </div>
             <icon-close class="log-close-icon" @click="$emit('update:modelValue', false)" />
@@ -19,13 +19,8 @@
           <!-- 中文注释：胶囊风格的时间筛选器 -->
           <div class="log-filter-bar" v-if="logs.length > 0">
             <div class="filter-capsule-container">
-              <div 
-                v-for="item in filterOptions" 
-                :key="item.value"
-                class="filter-capsule-item"
-                :class="{ 'active': currentFilter === item.value }"
-                @click="currentFilter = item.value"
-              >
+              <div v-for="item in filterOptions" :key="item.value" class="filter-capsule-item"
+                :class="{ 'active': currentFilter === item.value }" @click="currentFilter = item.value">
                 {{ item.label }}
               </div>
             </div>
@@ -38,7 +33,8 @@
             </div>
             <div v-else class="log-list">
               <!-- 中文注释：使用 displayedLogs 替代 filteredLogs 进行分批渲染 -->
-              <div v-for="(log, index) in displayedLogs" :key="log.id || index" class="log-item" :class="{ 'log-success': log.reason === '任务执行成功' }">
+              <div v-for="(log, index) in displayedLogs" :key="log.id || index" class="log-item"
+                :class="{ 'log-success': log.reason === '任务执行成功' }">
                 <div class="log-item-header">
                   <div class="header-left">
                     <span class="log-time">{{ log.time }}</span>
@@ -52,7 +48,7 @@
                         <icon-copy />
                       </div>
                     </a-tooltip>
-                    
+
                     <!-- 中文注释：点击触发自定义确认弹窗 -->
                     <div class="icon-btn delete-btn" @click="openConfirmDelete(log.id)">
                       <icon-delete />
@@ -60,14 +56,14 @@
                   </div>
                 </div>
                 <div class="log-reason">{{ log.reason }}</div>
-                
+
                 <!-- 中文注释：如果详情是 JSON 对象，则以格式化代码块展示 -->
                 <div v-if="isJsonObject(log.detail)" class="log-detail-json">
                   <pre class="json-code"><code>{{ JSON.stringify(parseJson(log.detail), null, 2) }}</code></pre>
                 </div>
                 <div v-else class="log-detail">{{ log.detail }}</div>
               </div>
-              
+
               <!-- 中文注释：加载更多提示 -->
               <div v-if="hasMore" class="load-more-tip">
                 <icon-loading spin style="margin-right: 8px;" /> 正在加载更多日志...
@@ -77,7 +73,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 中文注释：底部操作按钮 -->
           <div class="log-footer" v-if="logs.length > 0">
             <div class="footer-btn download-btn" @click="handleDownloadCsv">
@@ -94,12 +90,8 @@
   </transition>
 
   <!-- 中文注释：自定义二次确认弹窗 -->
-  <ConfirmModal 
-    v-model="showConfirm"
-    :title="confirmConfig.title"
-    :content="confirmConfig.content"
-    @confirm="confirmConfig.onConfirm"
-  />
+  <ConfirmModal v-model="showConfirm" :title="confirmConfig.title" :content="confirmConfig.content"
+    @confirm="confirmConfig.onConfirm" />
 </template>
 
 <script>
@@ -136,7 +128,7 @@ export default {
       confirmConfig: {
         title: '',
         content: '',
-        onConfirm: () => {}
+        onConfirm: () => { }
       },
       // 中文注释：懒渲染相关配置
       pageSize: 20, // 每次加载的数量
@@ -154,19 +146,23 @@ export default {
     }
   },
   computed: {
+    // 中文注释：日志总条数基于原始日志池，不受筛选影响
+    totalLogCount() {
+      return Array.isArray(this.logs) ? this.logs.length : 0;
+    },
     // 中文注释：根据时间筛选日志
     filteredLogs() {
       if (this.currentFilter === 'all') return this.logs;
-      
+
       const now = new Date();
       now.setHours(0, 0, 0, 0); // 设置为今天凌晨 0 点
-      
+
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
-      
+
       const threeDaysAgo = new Date(now);
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 2); // 包含今天、昨天、前天共3天
-      
+
       const sevenDaysAgo = new Date(now);
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // 包含今天在内的前7天
 
@@ -282,7 +278,7 @@ export default {
       try {
         // CSV 表头
         const headers = ['时间', '原因', '详情'];
-        
+
         // 转换数据行 (使用筛选后的数据)
         const rows = this.filteredLogs.map(log => {
           // 处理详情：如果是对象则转为字符串，并处理 CSV 中的引号问题
@@ -290,7 +286,7 @@ export default {
           if (this.isJsonObject(detailStr)) {
             detailStr = JSON.stringify(this.parseJson(detailStr));
           }
-          
+
           // 处理 CSV 转义：将双引号替换为两个双引号，并在整个字段两端加上双引号
           const escapeCsv = (str) => {
             if (str === null || str === undefined) return '';
@@ -307,23 +303,23 @@ export default {
 
         // 组合成完整的 CSV 字符串（添加 BOM 以支持 Excel 中文展示）
         const csvContent = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
-        
+
         // 创建下载
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        
+
         const now = new Date();
         const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
         const filterName = this.filterOptions.find(o => o.value === this.currentFilter)?.label || '全部';
-        
+
         link.setAttribute('href', url);
         link.setAttribute('download', `运行日志_${filterName}_${dateStr}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         Message.success('日志导出成功');
       } catch (err) {
         console.error('Export CSV error:', err);
@@ -355,7 +351,7 @@ export default {
     },
     handleCopy(log) {
       const text = `时间: ${log.time}\n原因: ${log.reason}\n详情: ${log.detail}`;
-      
+
       // 优先使用现代 Clipboard API
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
@@ -373,19 +369,19 @@ export default {
       try {
         const textArea = document.createElement("textarea");
         textArea.value = text;
-        
+
         // 确保 textarea 在屏幕外且不可见
         textArea.style.position = "fixed";
         textArea.style.left = "-9999px";
         textArea.style.top = "0";
         document.body.appendChild(textArea);
-        
+
         textArea.focus();
         textArea.select();
-        
+
         const successful = document.execCommand('copy');
         document.body.removeChild(textArea);
-        
+
         if (successful) {
           Message.success('日志已复制到剪贴板');
         } else {
@@ -409,7 +405,8 @@ export default {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
-  z-index: 2100; /* 比设置弹窗高一点 */
+  z-index: 2100;
+  /* 比设置弹窗高一点 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -431,7 +428,8 @@ export default {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 95vh; /* 固定高度为 95% 视口高度 */
+  height: 95vh;
+  /* 固定高度为 95% 视口高度 */
 }
 
 .log-header {
@@ -474,6 +472,14 @@ export default {
       letter-spacing: 0.5px;
       margin-top: 2px;
     }
+
+    .log-count {
+      font-size: 10px;
+      color: #6b7785;
+      line-height: 1.3;
+      margin-top: 3px;
+      white-space: nowrap;
+    }
   }
 
   .log-close-icon {
@@ -509,7 +515,8 @@ export default {
     padding: 6px 0;
     color: #4e5969;
     cursor: pointer;
-    border-radius: 8px; /* 苹果风格 8px 圆角 */
+    border-radius: 8px;
+    /* 苹果风格 8px 圆角 */
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
 
@@ -537,7 +544,7 @@ export default {
     align-items: center;
     justify-content: center;
     padding: 60px 0;
-    
+
     .empty-text {
       font-size: 14px;
       color: #86909c;
@@ -551,18 +558,18 @@ export default {
   }
 
   .log-item {
-      background: #fff;
-      border-radius: 12px;
-      padding: 12px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-      border-left: 3px solid #ff4d4f;
-      // 中文注释：使用 content-visibility 优化长列表渲染性能，跳过不在视口内的内容渲染
-      content-visibility: auto;
-      contain-intrinsic-size: 100px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    border-left: 3px solid #ff4d4f;
+    // 中文注释：使用 content-visibility 优化长列表渲染性能，跳过不在视口内的内容渲染
+    content-visibility: auto;
+    contain-intrinsic-size: 100px;
 
-      &.log-success {
-        border-left-color: #00b42a;
-      }
+    &.log-success {
+      border-left-color: #00b42a;
+    }
 
     .log-item-header {
       display: flex;
@@ -674,7 +681,8 @@ export default {
     }
   }
 
-  .load-more-tip, .no-more-tip {
+  .load-more-tip,
+  .no-more-tip {
     text-align: center;
     padding: 12px 0;
     font-size: 12px;
