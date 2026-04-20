@@ -933,6 +933,9 @@ export default {
         const descField = await table.getField('产品描述');
         const progressField = await table.getField('任务进度');
 
+        let successCount = 0;
+        let failureCount = 0;
+
         // 套图结果x 和 套图链接x
         // 中文注释：根据用户选择的套图组数，预先检测并按顺序创建必要的“套图结果”和“套图链接”字段
         const maxSets = Number(this.formData.tmpTotal || 1);
@@ -951,7 +954,6 @@ export default {
 
           // 检测并创建文本链接字段
           if (!existingFieldNames.includes(urlFieldTitle)) {
-            console.log(`Creating missing field: ${urlFieldTitle}`);
             await table.addField({ type: FieldType.Text, name: urlFieldTitle });
           }
         }
@@ -965,20 +967,39 @@ export default {
           const rowId = this.recordIdList[i];
           this.edit.rowId = rowId;
 
+          const imgValueField = await imgField.getValue(rowId);
+          if (!imgValueField || imgValueField.length <= 0) {
+            this.addLog('图片附件为空', `行ID: ${rowId}`);
+            ui.showToast({ toastType: 'warning', message: `选择的第 ${ i + 1 }条,数据图片附件为空，已跳过该条。` });
+            failureCount++;
+            continue;
+          }
           // 获取当前行数据
-          const imgs = await imgField.getAttachmentUrls(rowId);
-          this.edit.imgs = imgs; // 直接赋值数组或根据需要处理
-
+          const imgs = imgField ? await imgField.getAttachmentUrls(rowId) : [];
+          this.edit.imgs = imgs;
+          
           // 中文注释：使用表单中的“单套张数”作为 total 提交给接口
           this.edit.total = this.formData.total || '5';
 
           const titleCellValue = await titleField.getValue(rowId);
+          if (!titleCellValue || (Array.isArray(titleCellValue) && titleCellValue.length === 0)) {
+            this.addLog('商品标题为空', `行ID: ${rowId}`);
+            ui.showToast({ toastType: 'warning', message: `选择的第 ${ i + 1 }条,数据商品标题为空，已跳过。` });
+            failureCount++;
+            continue;
+          }
           // 中文注释：防御性处理 getValue 返回的数据，防止 map 报错（如存在 null/undefined 的项）
           this.edit.title = Array.isArray(titleCellValue)
             ? titleCellValue.filter(item => item && item.text).map(item => item.text).join('\n')
             : (titleCellValue?.text || (typeof titleCellValue === 'string' ? titleCellValue : ''));
 
           const descCellValue = await descField.getValue(rowId);
+          if (!descCellValue || (Array.isArray(descCellValue) && descCellValue.length === 0)) {
+            this.addLog('产品描述为空', `行ID: ${rowId}`);
+            ui.showToast({ toastType: 'warning', message: `选择的第 ${ i + 1 }条, 数据产品描述为空，已跳过。` });
+            failureCount++;
+            continue;
+          }
           // 中文注释：同上，确保在处理富文本或普通文本时逻辑健壮
           this.edit.desc = Array.isArray(descCellValue)
             ? descCellValue.filter(item => item && item.text).map(item => item.text).join('\n')
@@ -987,6 +1008,7 @@ export default {
             const res = await AddTask({ ...this.edit, ...this.formData });
 
             if (res.code === 200) {
+              successCount++;
               const taskList = Array.isArray(res.data) ? res.data : [res.data];
 
               // 存储任务ID
@@ -1016,6 +1038,7 @@ export default {
                 res
               });
               ui.showToast({ toastType: 'error', message: res.msg || '任务提交失败' });
+              failureCount++;
               break; // 出错时停止循环
             }
           } catch (err) {
@@ -1027,11 +1050,13 @@ export default {
               stack: err?.stack || ''
             });
             ui.showToast({ toastType: 'error', message: '提交任务时发生错误' });
+            failureCount++;
             break;
           }
         }
 
-        ui.showToast({ toastType: 'success', message: '任务执行成功' });
+        ui.showToast({ toastType: 'success', message: `任务执行完成，共 ${this.recordIdList.length} 条数据，成功 ${successCount} 条，失败 ${failureCount} 条。` });
+        this.addLog('任务执行完成', `共 ${this.recordIdList.length} 条数据，成功 ${successCount} 条，失败 ${failureCount} 条。`);
         this.recordIdList = []; // 清空选择
 
         // 强制重置暂停状态并启动轮询
@@ -1298,7 +1323,6 @@ export default {
                         // 创建字段
                         await table.addField({ type: FieldType.Attachment, name: fieldTitle });
                         outPutImgField = await table.getField(fieldTitle);
-                        console.log(`[Task] Field "${fieldTitle}" created successfully.`);
                       } catch (createError) {
                         console.error(`[Task] Failed to create field "${fieldTitle}":`, createError);
                         this.addLog(`创建“${fieldTitle}”字段失败`, task);
@@ -1317,7 +1341,6 @@ export default {
                           // 创建文本字段
                           await table.addField({ type: FieldType.Text, name: fieldGroupUrlTitle });
                           outPutUrlField = await table.getField(fieldGroupUrlTitle);
-                          console.log(`[Task] Field "${fieldGroupUrlTitle}" created successfully.`);
                         } catch (createError) {
                           console.error(`[Task] Failed to create field "${fieldGroupUrlTitle}":`, createError);
                           this.addLog(`创建“${fieldGroupUrlTitle}”字段失败`, task);
@@ -1351,7 +1374,6 @@ export default {
                         }
 
                         await outPutUrlField.setValue(task.row_id, finalUrlString);
-                        console.log(`[Task] Image URLs inserted into "${fieldGroupUrlTitle}" successfully.`);
                       }
                     } catch (urlFieldErr) {
                       console.error(`[Task] Error processing "${fieldGroupUrlTitle}" field:`, urlFieldErr);
@@ -1375,7 +1397,6 @@ export default {
                       }
                     }
 
-                    console.log('[Task] Ready to upload fileList:', fileList.length);
                     if (fileList.length > 0) {
                       // 1. 获取旧数据
                       const existingVal = await outPutImgField.getValue(task.row_id);
@@ -1405,7 +1426,6 @@ export default {
                         // 4. 回填合并后的数据
                         await outPutImgField.setValue(task.row_id, finalAttachments);
                       }
-                      console.log('[Task] Images uploaded successfully (appended).');
                     }
                   }
                   // 中文注释：任务执行成功，记录完整数据日志
@@ -1428,7 +1448,6 @@ export default {
                     // 如果没有 就 创建文本字段
                     await table.addField({ type: FieldType.Text, name: fieldGroupUrlTitle });
                     outPutUrlField = await table.getField(fieldGroupUrlTitle);
-                    console.log(`[Task] Field "${fieldGroupUrlTitle}" created successfully.`);
                   } catch (createError) {
                     console.error(`[Task] Failed to create field "${fieldGroupUrlTitle}":`, createError);
                     this.addLog(`创建“${fieldGroupUrlTitle}”字段失败`, task);
@@ -1476,7 +1495,6 @@ export default {
 
           // 更新存储
           try {
-            console.log('[Task] Syncing storage. Final IDs:', finalTaskIds);
             await bitable.bridge.setData('FEIYU_PLUG_TASK_ID', finalTaskIds);
             this.runningTaskCount = finalTaskIds.length;
           } catch (storageErr) {
@@ -1676,7 +1694,6 @@ export default {
             const field = fieldMetaList.find(f => f.name === fieldName);
             if (field && field.type !== expectedType) {
               try {
-                console.log(`Converting field ${fieldName} from ${field.type} to ${expectedType}`);
                 await table.setField(field.id, { type: expectedType });
               } catch (err) {
                 console.error(`Failed to convert field ${fieldName}:`, err);
@@ -1708,7 +1725,6 @@ export default {
           if (existingStatusField) {
             // 存在则检测类型
             if (existingStatusField.type !== FieldType.SingleSelect) {
-              console.log(`Converting ${statusFieldName} to SingleSelect`);
               await table.setField(existingStatusField.id, {
                 type: FieldType.SingleSelect,
                 property: { options: statusOptionsConfig }
@@ -1730,7 +1746,6 @@ export default {
 
             // 如果选项为空（可能是转换类型时丢失），重新设置选项
             if (!statusOptions || statusOptions.length === 0) {
-              console.log('Options missing for status field, resetting options...');
               // 注意：setField 修改属性时不需要传 type
               await table.setField(statusField.id, { property: { options: statusOptionsConfig } });
               statusOptions = await statusField.getOptions();
@@ -1760,7 +1775,6 @@ export default {
           if (existingProgressField) {
             // 存在则检测类型
             if (existingProgressField.type !== FieldType.Progress) {
-              console.log(`Deleting ${progressFieldName} due to type mismatch`);
               try {
                 await table.deleteField(existingProgressField.id);
                 shouldCreateProgress = true;
