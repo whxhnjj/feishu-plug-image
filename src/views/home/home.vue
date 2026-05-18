@@ -56,7 +56,7 @@
             </span>
           </a-tooltip>
           <a v-if="webUrl" :href="webUrl + '/app/user-center'" target="_blank" class="link-text">{{ t('getApiKey')
-            }}</a>
+          }}</a>
         </div>
         <div class="header-right">
           <a-button v-if="!isEditingApiKey" type="text" size="small" @click="startEditApiKey">
@@ -142,7 +142,7 @@
             </div>
           </div>
           <div class="item-right">
-            <a-select v-model="formData[configList.model.field]" class="minimal-select" allow-search
+            <a-select v-model="formData.aiModel" class="minimal-select" allow-search
               :placeholder="t('pleaseSelect')" :trigger-props="{ autoFitPopupMinWidth: true }">
               <template #label="{ data }">
                 <div v-if="data" class="model-option-left" style="gap: 4px; min-width: 0; width: 100%;">
@@ -155,14 +155,15 @@
                       data.label }}</span>
                 </div>
               </template>
-              <a-option v-for="opt in configList.model.value" :key="opt.value" :value="opt.value" :label="opt.name">
+              <a-option v-for="opt in configList.model.value" :key="opt.value" :value="opt.value"
+                :label="opt.label || opt.name">
                 <div class="model-option-wrapper">
                   <div class="model-option-left">
                     <div class="model-icon-box">
                       <img :src="getImgSrc(opt.value)" alt="icon" class="model-icon-img" />
                     </div>
                     <div class="model-name-wrapper">
-                      <span class="model-name">{{ opt.name }}</span>
+                      <span class="model-name">{{ opt.label || opt.name }}</span>
                       <div v-if="opt.is_active" class="model-badge">
                         {{ opt.is_active }}
                       </div>
@@ -175,25 +176,8 @@
           </div>
         </div>
 
-        <!-- 语言选项 -->
-        <div v-if="configList.language" class="form-card-item">
-          <div class="item-left">
-            <span class="item-icon icon-fixed-1"><icon-language /></span>
-            <div class="item-info">
-              <span class="label-text">{{ configList.language.title }}</span>
-            </div>
-          </div>
-          <div class="item-right">
-            <a-select v-model="formData[configList.language.field]" class="minimal-select" allow-search
-              :placeholder="t('pleaseSelect')" :trigger-props="{ autoFitPopupMinWidth: true }">
-              <a-option v-for="opt in configList.language.value" :key="opt.value" :value="opt.value"
-                :disabled="isLanguageDisabled(opt.value)">{{ opt.name }}</a-option>
-            </a-select>
-          </div>
-        </div>
-
         <!-- setting 动态配置 -->
-        <div v-if="currentModelSettings" v-for="(item, index) in currentModelSettings" :key="item.field"
+        <div v-if="visibleCurrentModelSettings.length > 0" v-for="(item, index) in visibleCurrentModelSettings" :key="item.field"
           class="form-card-item">
           <div class="item-left">
             <span class="item-icon" :class="`icon-${(index + 2) % 4}`">
@@ -206,21 +190,24 @@
           <div class="item-right">
             <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search
               :placeholder="t('pleaseSelect') + ' ' + item.title" :trigger-props="{ autoFitPopupMinWidth: true }">
-              <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value">{{ opt.name }}</a-option>
+              <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value"
+                :disabled="item.field === 'language' ? isLanguageDisabled(opt.value) : false">{{ opt.name }}</a-option>
             </a-select>
             <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]"
-              :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value.min" :max="item.value.max" />
-            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom"
-              content-class="text-input-popover">
-              <div class="text-display-trigger">
-                <span v-if="formData[item.field]" class="text-value">{{ formData[item.field] }}</span>
-                <span v-else class="placeholder">{{ t('pleaseEnter') + ' ' + item.title }}</span>
+              :placeholder="t('pleaseEnter') + ' ' + item.title" mode="button" />
+            <a-input v-else-if="item.type === 'text'" v-model="formData[item.field]"
+              :placeholder="t('pleaseEnter') + ' ' + item.title" allow-clear />
+            <a-textarea v-else-if="item.type === 'textarea'" v-model="formData[item.field]"
+              :placeholder="t('pleaseEnter') + ' ' + item.title" allow-clear
+              :auto-size="{ minRows: 3, maxRows: 6 }" />
+            <div v-else-if="item.type === 'url'" class="url-upload-field">
+              <input type="file" multiple accept="image/*"
+                @change="(event) => handleUrlFieldFileChange(item, event)">
+              <div class="url-upload-meta">
+                <span class="url-upload-count">已选择 {{ getUrlFieldFileCount(item.field) }} 个文件</span>
+                <a-button type="text" size="mini" @click="clearUrlFieldFiles(item.field)">清空</a-button>
               </div>
-              <template #content>
-                <a-textarea v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title"
-                  :max-length="item.value?.max" allow-clear show-word-limit :auto-size="{ minRows: 3, maxRows: 6 }" />
-              </template>
-            </a-popover>
+            </div>
           </div>
         </div>
 
@@ -229,9 +216,9 @@
           class="form-card-item">
           <div class="item-left">
             <span class="item-icon"
-              :class="`icon-${(index + 2 + (currentModelSettings ? currentModelSettings.length : 0)) % 4}`">
+              :class="`icon-${(index + 2 + visibleCurrentModelSettings.length) % 4}`">
               <component
-                :is="getIcon(index + 2 + (currentModelSettings ? currentModelSettings.length : 0), item.title)" />
+                :is="getIcon(index + 2 + visibleCurrentModelSettings.length, item.title)" />
             </span>
             <div class="item-info">
               <span class="label-text">{{ item.title }}</span>
@@ -240,21 +227,24 @@
           <div class="item-right">
             <a-select v-if="item.type === 'select'" v-model="formData[item.field]" class="minimal-select" allow-search
               :placeholder="t('pleaseSelect') + ' ' + item.title" :trigger-props="{ autoFitPopupMinWidth: true }">
-              <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value">{{ opt.name }}</a-option>
+              <a-option v-for="opt in item.value" :key="opt.value" :value="opt.value"
+                :disabled="item.field === 'language' ? isLanguageDisabled(opt.value) : false">{{ opt.name }}</a-option>
             </a-select>
             <a-input-number v-else-if="item.type === 'number'" v-model="formData[item.field]"
-              :placeholder="t('pleaseEnter') + ' ' + item.title" :min="item.value?.min" :max="item.value?.max" />
-            <a-popover v-else-if="item.type === 'text'" trigger="click" position="bottom"
-              content-class="text-input-popover">
-              <div class="text-display-trigger">
-                <span v-if="formData[item.field]" class="text-value">{{ formData[item.field] }}</span>
-                <span v-else class="placeholder">{{ t('pleaseEnter') + ' ' + item.title }}</span>
+              :placeholder="t('pleaseEnter') + ' ' + item.title" mode="button" />
+            <a-input v-else-if="item.type === 'text'" v-model="formData[item.field]"
+              :placeholder="t('pleaseEnter') + ' ' + item.title" allow-clear />
+            <a-textarea v-else-if="item.type === 'textarea'" v-model="formData[item.field]"
+              :placeholder="t('pleaseEnter') + ' ' + item.title" allow-clear
+              :auto-size="{ minRows: 3, maxRows: 6 }" />
+            <div v-else-if="item.type === 'url'" class="url-upload-field">
+              <input type="file" multiple accept="image/*"
+                @change="(event) => handleUrlFieldFileChange(item, event)">
+              <div class="url-upload-meta">
+                <span class="url-upload-count">已选择 {{ getUrlFieldFileCount(item.field) }} 个文件</span>
+                <a-button type="text" size="mini" @click="clearUrlFieldFiles(item.field)">清空</a-button>
               </div>
-              <template #content>
-                <a-textarea v-model="formData[item.field]" :placeholder="t('pleaseEnter') + ' ' + item.title"
-                  :max-length="item.value?.max" allow-clear show-word-limit :auto-size="{ minRows: 3, maxRows: 6 }" />
-              </template>
-            </a-popover>
+            </div>
           </div>
         </div>
 
@@ -435,6 +425,7 @@ import zh from './locales/zh.json';
 import en from './locales/en.json';
 import jp from './locales/jp.json';
 import './style.css';
+import { uploadFilesToCOS } from '@/utils/cosUpload';
 import useAppStore from '@/stores/app';
 import { mapState } from 'pinia';
 import SettingsModal from './com/SettingsModal.vue';
@@ -449,7 +440,6 @@ import {
   IconArrowRight,
   IconPalette,
   IconImage,
-  IconLanguage,
   IconExpand,
   IconCheckCircleFill,
   IconInfoCircleFill,
@@ -482,7 +472,6 @@ export default {
     IconArrowRight,
     IconPalette,
     IconImage,
-    IconLanguage,
     IconExpand,
     IconPlayCircle,
     IconPlus,
@@ -507,7 +496,11 @@ export default {
       isTaskStatusHidden: localStorage.getItem('FEIYU_PLUG_IS_TASK_STATUS_HIDDEN') === 'true',
       isBannerHidden: localStorage.getItem('FEIYU_PLUG_IS_BANNER_HIDDEN') === 'true',
       storedPreferences: null,
-      configList: [],
+      configList: {
+        model: null,
+        fixedSetting: [],
+        setting: {}
+      },
       loading: false,
       isSelectingData: false,
       bannerLoading: false,
@@ -522,7 +515,6 @@ export default {
         tableId: '',
         viewId: '',
         rowId: '',
-        imgs: '',
         total: '',
         title: '',
         desc: '',
@@ -551,6 +543,9 @@ export default {
       }
       return this.configList.setting[this.formData.aiModel] || [];
     },
+    visibleCurrentModelSettings() {
+      return this.currentModelSettings.filter(item => !item.hidden);
+    },
     indicatorStyle() {
       return {
         top: `${this.indicatorTop}px`,
@@ -574,27 +569,23 @@ export default {
   watch: {
     'formData.aiModel': {
       handler(newValue, oldValue) {
-        // 只有当模型真正发生改变（且不是初次初始化）时，才执行动态配置的切换逻辑
         if (newValue && oldValue && newValue !== oldValue) {
-          // 当用户手动切换模型时，动态更新表单
-          // 1. 移除旧模型的设置
-          if (this.configList.setting && this.configList.setting[oldValue]) {
-            this.configList.setting[oldValue].forEach(item => {
+          const oldModelSettings = this.getModelSettingsByValue(oldValue);
+          oldModelSettings.forEach(item => {
+            if (item?.field) {
               delete this.formData[item.field];
-            });
-          }
-          // 2. 添加新模型的默认设置
-          if (this.configList.setting && this.configList.setting[newValue]) {
-            this.configList.setting[newValue].forEach(item => {
-              this.formData[item.field] = item.type === 'number' ? Number(item.default) : item.default;
-            });
-          }
+            }
+          });
 
-          // 检查当前语言是否被新模型支持
-          const newModelData = this.configList.model.value.find(m => m.value === newValue);
-          if (newModelData && newModelData.excludeLanguage && newModelData.excludeLanguage.includes(this.formData.language)) {
-            // 如果不支持，则重置为默认语言
-            this.formData.language = this.configList.language.default;
+          const newModelSettings = this.getModelSettingsByValue(newValue);
+          newModelSettings.forEach(item => {
+            if (!item?.field || item.hidden) return;
+            this.formData[item.field] = this.getDefaultValueByFieldConfig(item);
+          });
+
+          const languageConfig = this.configList.fixedSetting.find(item => item.field === 'language');
+          if (languageConfig && this.isLanguageDisabled(this.formData.language)) {
+            this.formData.language = languageConfig.default;
           }
         }
         this.calculatePoints();
@@ -675,17 +666,197 @@ export default {
       this.isBannerHidden = !val;
       localStorage.setItem('FEIYU_PLUG_IS_BANNER_HIDDEN', this.isBannerHidden);
     },
+    mapFieldInputType(inputType) {
+      const type = String(inputType || '').toLowerCase();
+      if (type === 'select' || type === 'radio') return 'select';
+      if (type === 'number') return 'number';
+      if (type === 'textarea') return 'textarea';
+      if (type === 'url') return 'url';
+      return 'text';
+    },
+    normalizeSelectOptions(options = []) {
+      if (!Array.isArray(options)) return [];
+      return options.map(option => ({
+        value: option?.value ?? '',
+        name: option?.label ?? option?.name ?? option?.value ?? ''
+      }));
+    },
+    normalizeFieldConfig(fieldConfig = {}) {
+      const fieldInput = String(fieldConfig.field_input || fieldConfig.type || '').toLowerCase();
+      const type = this.mapFieldInputType(fieldInput);
+      const field = fieldConfig.field_key || fieldConfig.field || '';
+      const isImagesField = fieldInput === 'url' && field === 'images';
+      const rawLimit = Number(fieldConfig.field_limit ?? 0);
+      const fieldLimit = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 0;
+      const isRequired = Number(fieldConfig.is_required ?? 0) > 0;
+      return {
+        title: fieldConfig.field_label || fieldConfig.title || field,
+        field,
+        type,
+        fieldInput: fieldInput || type,
+        fieldType: fieldConfig.field_type || '',
+        default: fieldConfig.default_value ?? fieldConfig.default ?? '',
+        value: this.normalizeSelectOptions(fieldConfig.field_option || fieldConfig.value || []),
+        fieldLimit,
+        isRequired,
+        hidden: isImagesField
+      };
+    },
+    normalizeConfigData(rawData = {}) {
+      if (Array.isArray(rawData.model)) {
+        const modelList = rawData.model || [];
+        const modelOptions = modelList.map(model => ({
+          value: model?.value ?? '',
+          label: model?.label ?? model?.name ?? model?.value ?? '',
+          name: model?.label ?? model?.name ?? model?.value ?? '',
+          points: Number(model?.points ?? 0),
+          is_active: model?.is_active || '',
+          excludeLanguage: Array.isArray(model?.excludeLanguage) ? model.excludeLanguage : []
+        }));
+        const modelDefault = modelOptions[0]?.value || '';
+        const settingMap = {};
+        modelList.forEach(model => {
+          const modelValue = model?.value ?? '';
+          settingMap[modelValue] = Array.isArray(model?.setting)
+            ? model.setting.map(settingItem => this.normalizeFieldConfig(settingItem))
+            : [];
+        });
+        return {
+          model: {
+            title: '使用模型',
+            field: 'aiModel',
+            type: 'select',
+            default: modelDefault,
+            value: modelOptions
+          },
+          fixedSetting: Array.isArray(rawData.fixedSetting) ? rawData.fixedSetting.map(item => this.normalizeFieldConfig(item)) : [],
+          setting: settingMap
+        };
+      }
+
+      const oldModel = rawData.model || {};
+      const oldSetting = rawData.setting || {};
+      const modelOptions = Array.isArray(oldModel.value)
+        ? oldModel.value.map(item => ({
+          value: item?.value ?? '',
+          label: item?.name ?? item?.label ?? item?.value ?? '',
+          name: item?.name ?? item?.label ?? item?.value ?? '',
+          points: Number(item?.points ?? 0),
+          is_active: item?.is_active || '',
+          excludeLanguage: Array.isArray(item?.excludeLanguage) ? item.excludeLanguage : []
+        }))
+        : [];
+      const settingMap = {};
+      Object.keys(oldSetting).forEach(modelValue => {
+        const fields = Array.isArray(oldSetting[modelValue]) ? oldSetting[modelValue] : [];
+        settingMap[modelValue] = fields.map(item => this.normalizeFieldConfig({
+          field_label: item?.title,
+          field_input: item?.type,
+          field_key: item?.field,
+          field_option: item?.value,
+          default_value: item?.default
+        }));
+      });
+      const fixedSetting = Array.isArray(rawData.fixedSetting)
+        ? rawData.fixedSetting.map(item => this.normalizeFieldConfig({
+          field_label: item?.title,
+          field_input: item?.type,
+          field_key: item?.field,
+          field_option: item?.value,
+          default_value: item?.default
+        }))
+        : [];
+
+      return {
+        model: {
+          title: oldModel.title || '使用模型',
+          field: 'aiModel',
+          type: 'select',
+          default: oldModel.default || modelOptions[0]?.value || '',
+          value: modelOptions
+        },
+        fixedSetting,
+        setting: settingMap
+      };
+    },
+    getModelSettingsByValue(modelValue) {
+      if (!modelValue || !this.configList?.setting) return [];
+      return this.configList.setting[modelValue] || [];
+    },
+    getDefaultValueByFieldConfig(fieldConfig) {
+      if (fieldConfig.type === 'number') {
+        const num = Number(fieldConfig.default);
+        return Number.isFinite(num) ? num : '';
+      }
+      if (fieldConfig.type === 'url') {
+        return [];
+      }
+      return fieldConfig.default ?? '';
+    },
+    getFieldLimit(fieldConfig) {
+      const limit = Number(fieldConfig?.fieldLimit ?? 0);
+      return Number.isFinite(limit) && limit > 0 ? limit : 0;
+    },
+    handleUrlFieldFileChange(item, event) {
+      const allFiles = Array.from(event?.target?.files || []);
+      const limit = this.getFieldLimit(item);
+      let finalFiles = allFiles;
+      if (limit > 0 && allFiles.length > limit) {
+        finalFiles = allFiles.slice(0, limit);
+        ui.showToast({ toastType: 'warning', message: `${item.title} 最多上传 ${limit} 个文件，已自动截断。` });
+      }
+      this.formData[item.field] = finalFiles;
+      if (event?.target) {
+        event.target.value = '';
+      }
+    },
+    getUrlFieldFileCount(fieldKey) {
+      const files = this.formData[fieldKey];
+      return Array.isArray(files) ? files.length : 0;
+    },
+    clearUrlFieldFiles(fieldKey) {
+      this.formData[fieldKey] = [];
+    },
+    normalizeInputValueByField(fieldConfig, inputValue) {
+      if (fieldConfig.type === 'number') {
+        if (inputValue === '' || inputValue === null || inputValue === undefined) {
+          return '';
+        }
+        const num = Number(inputValue);
+        return Number.isFinite(num) ? num : '';
+      }
+      return inputValue;
+    },
+    isFieldValueEmpty(fieldConfig, value) {
+      if (fieldConfig.type === 'url') {
+        return !Array.isArray(value) || value.length === 0;
+      }
+      if (fieldConfig.type === 'number') {
+        return value === '' || value === null || value === undefined || Number.isNaN(Number(value));
+      }
+      return value === '' || value === null || value === undefined;
+    },
     getImgSrc(value) {
       if (!value) return new URL('./img/logo.svg', import.meta.url).href;
-      const lowerValue = value.toLowerCase();
-      if (lowerValue.includes('gemini')) {
-        return new URL('./img/gemini.svg', import.meta.url).href;
-      } else if (lowerValue.includes('nano-banana')) {
+      const lowerValue = String(value).toLowerCase();
+      if (lowerValue.includes('gpt')) {
+        return new URL('./img/chat-gpt.svg', import.meta.url).href;
+      } else if (lowerValue.includes('banana')) {
         return new URL('./img/nano-banana.svg', import.meta.url).href;
-      } else if (lowerValue.includes('wan') || lowerValue.includes('万相')) {
+      } else if (lowerValue.includes('grok')) {
+        return new URL('./img/grok.svg', import.meta.url).href;
+      } else if (lowerValue.includes('veo')) {
+        return new URL('./img/gemini.svg', import.meta.url).href;
+      } else if (lowerValue.includes('wan')) {
         return new URL('./img/万相.svg', import.meta.url).href;
+      } else if (lowerValue.includes('gemini')) {
+        return new URL('./img/gemini.svg', import.meta.url).href;
       } else if (lowerValue.includes('doubao')) {
         return new URL('./img/doubao.svg', import.meta.url).href;
+      } else if (lowerValue.includes('seedream')) {
+        return new URL('./img/doubao.svg', import.meta.url).href;
+      } else if (lowerValue.includes('kling')) {
+        return new URL('./img/kling.svg', import.meta.url).href;
       } else {
         return new URL('./img/logo.svg', import.meta.url).href;
       }
@@ -768,13 +939,8 @@ export default {
         const res = await GetPlugSelectField();
         // 中文注释：防止在请求返回前组件已卸载导致的内存操作风险
         if (this._isUnmounted) return;
-        //  const res = jsonData;
         if (res.code === 200) {
-          this.configList = res.data || [];
-          // 中文注释：过滤掉“输出图数量”相关配置，因为它已被“单套张数”取代
-          if (this.configList.fixedSetting) {
-            this.configList.fixedSetting = this.configList.fixedSetting.filter(item => item.title !== '输出图数量');
-          }
+          this.configList = this.normalizeConfigData(res.data || {});
           this.webUrl = res?.domain || 'https://feishu.feiyushuju.com';
           this.initForm();
         } else {
@@ -836,76 +1002,171 @@ export default {
       const data = {};
       const isRemember = this.memoryMode === 'remember' && this.storedPreferences;
 
-      // 1. 确定模型
       let modelToUse;
       if (isRemember && this.storedPreferences.aiModel) {
         modelToUse = this.storedPreferences.aiModel;
       } else {
-        modelToUse = this.formData.aiModel || (this.configList.model ? this.configList.model.default : undefined);
+        modelToUse = this.formData.aiModel || this.configList?.model?.default;
       }
-
-      if (this.configList.model) {
-        data[this.configList.model.field] = modelToUse;
+      const modelExists = this.configList?.model?.value?.some(item => item.value === modelToUse);
+      if (!modelExists) {
+        modelToUse = this.configList?.model?.value?.[0]?.value || '';
       }
+      data.aiModel = modelToUse;
 
-      // 2. 初始化语言
-      if (this.configList.language) {
-        const field = this.configList.language.field;
-        if (isRemember && this.storedPreferences[field] !== undefined) {
-          data[field] = this.storedPreferences[field];
-        } else {
-          data[field] = this.configList.language.default;
-        }
-      }
-
-      // 3. 初始化固定配置
       if (this.configList.fixedSetting) {
         this.configList.fixedSetting.forEach(item => {
-          if (isRemember && this.storedPreferences[item.field] !== undefined) {
-            data[item.field] = item.type === 'number' ? Number(this.storedPreferences[item.field]) : this.storedPreferences[item.field];
+          if (!item?.field || item.hidden) return;
+          if (isRemember && this.storedPreferences[item.field] !== undefined && item.type !== 'url') {
+            data[item.field] = this.normalizeInputValueByField(item, this.storedPreferences[item.field]);
           } else {
-            data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
+            data[item.field] = this.getDefaultValueByFieldConfig(item);
           }
         });
       }
 
-      // 4. 初始化套图数量与单套张数
       if (isRemember && this.storedPreferences.tmpTotal !== undefined) {
         data.tmpTotal = this.storedPreferences.tmpTotal;
       } else {
-        data.tmpTotal = '1'; // 默认 1 套
+        data.tmpTotal = '1';
       }
-
       if (isRemember && this.storedPreferences.total !== undefined) {
         data.total = this.storedPreferences.total;
       } else {
-        data.total = '5'; // 默认 5 张
+        data.total = '5';
       }
 
-      // 5. 初始化动态配置
-      if (this.configList.setting && modelToUse && this.configList.setting[modelToUse]) {
-        this.configList.setting[modelToUse].forEach(item => {
-          if (isRemember && this.storedPreferences[item.field] !== undefined) {
-            data[item.field] = item.type === 'number' ? Number(this.storedPreferences[item.field]) : this.storedPreferences[item.field];
-          } else {
-            data[item.field] = item.type === 'number' ? Number(item.default) : item.default;
-          }
-        });
+      const modelSettings = this.getModelSettingsByValue(modelToUse);
+      modelSettings.forEach(item => {
+        if (!item?.field || item.hidden) return;
+        if (isRemember && this.storedPreferences[item.field] !== undefined && item.type !== 'url') {
+          data[item.field] = this.normalizeInputValueByField(item, this.storedPreferences[item.field]);
+        } else {
+          data[item.field] = this.getDefaultValueByFieldConfig(item);
+        }
+      });
+
+      const languageConfig = this.configList.fixedSetting.find(item => item.field === 'language');
+      if (languageConfig && this.isLanguageDisabled(data.language)) {
+        data.language = languageConfig.default;
       }
       this.formData = { ...data };
     },
+    getMemorySafeFormData() {
+      const safeData = {};
+      Object.keys(this.formData || {}).forEach(key => {
+        const value = this.formData[key];
+        if (value instanceof File) {
+          return;
+        }
+        if (Array.isArray(value) && value.some(item => item instanceof File)) {
+          return;
+        }
+        safeData[key] = value;
+      });
+      return safeData;
+    },
+    validateRequiredFieldsBeforeSubmit(modelSettings = []) {
+      for (const item of this.configList.fixedSetting || []) {
+        if (!item?.isRequired || !item?.field || item.hidden) continue;
+        const value = this.formData[item.field];
+        if (this.isFieldValueEmpty(item, value)) {
+          ui.showToast({ toastType: 'error', message: `${item.title} 为必填项` });
+          return false;
+        }
+      }
+
+      for (const item of modelSettings || []) {
+        if (!item?.isRequired || !item?.field || item.hidden) continue;
+        if (item.fieldInput === 'url' && item.field === 'images') continue;
+        const value = this.formData[item.field];
+        if (this.isFieldValueEmpty(item, value)) {
+          ui.showToast({ toastType: 'error', message: `${item.title} 为必填项` });
+          return false;
+        }
+      }
+      return true;
+    },
+    buildFixedSettingPayload() {
+      const payload = {};
+      for (const item of this.configList.fixedSetting || []) {
+        if (!item?.field || item.hidden) continue;
+        let value = this.formData[item.field];
+        if (this.isFieldValueEmpty(item, value)) {
+          value = this.getDefaultValueByFieldConfig(item);
+        }
+        payload[item.field] = this.normalizeInputValueByField(item, value);
+      }
+      return payload;
+    },
+    async buildModelSettingPayload(modelSettings = [], rowId, imgField, presetImageUrls = []) {
+      const payload = {};
+      for (const item of modelSettings) {
+        if (!item?.field) continue;
+
+        if (item.fieldInput === 'url' && item.field === 'images') {
+          const feishuUrls = Array.isArray(presetImageUrls) && presetImageUrls.length > 0
+            ? presetImageUrls
+            : (imgField ? await imgField.getAttachmentUrls(rowId) : []);
+          const limit = this.getFieldLimit(item);
+          const slicedUrls = limit > 0 ? feishuUrls.slice(0, limit) : feishuUrls;
+          console.log('[FEIYU_UPLOAD_DEBUG] 原始飞书链接', feishuUrls);
+          console.log('[FEIYU_UPLOAD_DEBUG] 截断后飞书链接', slicedUrls);
+          const { files, failedUrls } = await this.urlsToFiles(slicedUrls);
+          if (failedUrls.length > 0) {
+            await this.addLog('飞书链接转文件部分失败', {
+              rowId,
+              failCount: failedUrls.length,
+              failedUrls
+            });
+          }
+          if (slicedUrls.length > 0 && files.length === 0) {
+            throw new Error(`飞书图片下载失败：本行 ${slicedUrls.length} 张均未转换成功（可能是飞书链接跨域策略限制）`);
+          }
+          payload[item.field] = files.length > 0 ? await uploadFilesToCOS(files) : [];
+          console.log('[FEIYU_UPLOAD_DEBUG] COS上传结果链接', payload[item.field]);
+          continue;
+        }
+
+        if (item.fieldInput === 'url') {
+          const rawFiles = Array.isArray(this.formData[item.field]) ? this.formData[item.field] : [];
+          const limit = this.getFieldLimit(item);
+          const uploadFiles = limit > 0 ? rawFiles.slice(0, limit) : rawFiles;
+          payload[item.field] = uploadFiles.length > 0 ? await uploadFilesToCOS(uploadFiles) : [];
+          continue;
+        }
+
+        let value = this.formData[item.field];
+        if (this.isFieldValueEmpty(item, value)) {
+          value = this.getDefaultValueByFieldConfig(item);
+        }
+        payload[item.field] = this.normalizeInputValueByField(item, value);
+      }
+      return payload;
+    },
+    async urlsToFiles(urls = []) {
+      const files = [];
+      const failedUrls = [];
+      for (const url of urls) {
+        const file = await this.urlToFile(url);
+        if (file) {
+          files.push(file);
+        } else {
+          failedUrls.push(url);
+        }
+      }
+      return { files, failedUrls };
+    },
     async handleSubmit() {
       if (!this.validateApiKey()) return;
-      // 保存记忆设置 (使用 localStorage)
       if (this.memoryMode === 'remember') {
         try {
           localStorage.setItem('FEIYU_PLUG_MEMORY_MODE', 'remember');
-          localStorage.setItem('FEIYU_PLUG_PREFERENCES', JSON.stringify(this.formData));
+          localStorage.setItem('FEIYU_PLUG_PREFERENCES', JSON.stringify(this.getMemorySafeFormData()));
         } catch (err) {
           console.error('Save memory settings error:', err);
         }
       }
-      // 在这里增加一个判断，判断是否有数据表权限，没有的话提示用户没有此多为表格的权限
       try {
         const hasPermission = await bitable.base.isEditable();
         if (!hasPermission) {
@@ -916,13 +1177,21 @@ export default {
         console.error('Check permission error:', error);
       }
 
-
-
       if (this.submitting) return;
       if (this.recordIdList.length === 0) {
         ui.showToast({ toastType: 'error', message: '请先选择数据！' });
         return;
       }
+      if (!this.formData.aiModel) {
+        ui.showToast({ toastType: 'error', message: '请选择模型' });
+        return;
+      }
+
+      const modelSettings = this.getModelSettingsByValue(this.formData.aiModel);
+      if (!this.validateRequiredFieldsBeforeSubmit(modelSettings)) {
+        return;
+      }
+      const imagesSetting = modelSettings.find(item => item.fieldInput === 'url' && item.field === 'images');
 
       this.submitting = true;
       try {
@@ -962,7 +1231,6 @@ export default {
         // await Promise.all(this.recordIdList.map(rId => resultField.setValue(rId, []).catch(e => console.error('Clear field error', e))));
 
         for (let i = 0; i < this.recordIdList.length; i++) {
-          // 中文注释：循环中检查组件卸载状态，防止后台任务持续运行
           if (this._isUnmounted) return;
           const rowId = this.recordIdList[i];
           this.edit.rowId = rowId;
@@ -970,25 +1238,26 @@ export default {
           const imgValueField = await imgField.getValue(rowId);
           if (!imgValueField || imgValueField.length <= 0) {
             this.addLog('图片附件为空', `行ID: ${rowId}`);
-            ui.showToast({ toastType: 'warning', message: `选择的第 ${ i + 1 }条,数据图片附件为空，已跳过该条。` });
+            ui.showToast({ toastType: 'warning', message: `选择的第 ${i + 1}条,数据图片附件为空，已跳过该条。` });
             failureCount++;
             continue;
           }
-          // 获取当前行数据
-          const imgs = imgField ? await imgField.getAttachmentUrls(rowId) : [];
-          this.edit.imgs = imgs;
-          
-          // 中文注释：使用表单中的“单套张数”作为 total 提交给接口
+          const debugFeishuUrls = imagesSetting ? (await imgField.getAttachmentUrls(rowId) || []) : [];
+          console.log('[FEIYU_UPLOAD_DEBUG] 行提交摘要', {
+            rowId,
+            aiModel: this.formData.aiModel,
+            imagesCount: debugFeishuUrls.length
+          });
+
           this.edit.total = this.formData.total || '5';
 
           const titleCellValue = await titleField.getValue(rowId);
           if (!titleCellValue || (Array.isArray(titleCellValue) && titleCellValue.length === 0)) {
             this.addLog('商品标题为空', `行ID: ${rowId}`);
-            ui.showToast({ toastType: 'warning', message: `选择的第 ${ i + 1 }条,数据商品标题为空，已跳过。` });
+            ui.showToast({ toastType: 'warning', message: `选择的第 ${i + 1}条,数据商品标题为空，已跳过。` });
             failureCount++;
             continue;
           }
-          // 中文注释：防御性处理 getValue 返回的数据，防止 map 报错（如存在 null/undefined 的项）
           this.edit.title = Array.isArray(titleCellValue)
             ? titleCellValue.filter(item => item && item.text).map(item => item.text).join('\n')
             : (titleCellValue?.text || (typeof titleCellValue === 'string' ? titleCellValue : ''));
@@ -996,16 +1265,30 @@ export default {
           const descCellValue = await descField.getValue(rowId);
           if (!descCellValue || (Array.isArray(descCellValue) && descCellValue.length === 0)) {
             this.addLog('产品描述为空', `行ID: ${rowId}`);
-            ui.showToast({ toastType: 'warning', message: `选择的第 ${ i + 1 }条, 数据产品描述为空，已跳过。` });
+            ui.showToast({ toastType: 'warning', message: `选择的第 ${i + 1}条, 数据产品描述为空，已跳过。` });
             failureCount++;
             continue;
           }
-          // 中文注释：同上，确保在处理富文本或普通文本时逻辑健壮
           this.edit.desc = Array.isArray(descCellValue)
             ? descCellValue.filter(item => item && item.text).map(item => item.text).join('\n')
             : (descCellValue?.text || (typeof descCellValue === 'string' ? descCellValue : ''));
+
           try {
-            const res = await AddTask({ ...this.edit, ...this.formData });
+            const settingPayload = await this.buildModelSettingPayload(modelSettings, rowId, imgField, debugFeishuUrls);
+            const payload = {
+              appToken: this.edit.appToken,
+              tableId: this.edit.tableId,
+              viewId: this.edit.viewId,
+              rowId,
+              tmpTotal: this.formData.tmpTotal || '1',
+              total: this.formData.total || '5',
+              title: this.edit.title,
+              desc: this.edit.desc,
+              aiModel: this.formData.aiModel,
+              setting: settingPayload,
+              fixedSetting: this.buildFixedSettingPayload()
+            };
+            const res = await AddTask(payload);
 
             if (res.code === 200) {
               successCount++;
@@ -1030,9 +1313,7 @@ export default {
 
               // 更新表格中的状态
               await statusField.setValue(rowId, mainTask.status_str);
-
             } else {
-              // 中文注释：记录接口返回失败详情，便于排查任务提交问题
               this.addLog('提交任务失败(AddTask非200)', {
                 rowId,
                 res
@@ -1043,7 +1324,6 @@ export default {
             }
           } catch (err) {
             console.error(err);
-            // 中文注释：记录异常详情，包含错误信息和堆栈
             this.addLog('提交任务异常(AddTask异常)', {
               rowId,
               message: err?.message || String(err),
@@ -1544,15 +1824,45 @@ export default {
       }
     },
 
+    async downloadFeishuFile(url, credentialsMode = 'omit') {
+      const response = await fetch(url, {
+        mode: 'cors',
+        credentials: credentialsMode
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`);
+      }
+      return response.blob();
+    },
     async urlToFile(url) {
       try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const filename = url.substring(url.lastIndexOf('/') + 1) || 'image.png';
-        return new File([blob], filename, { type: blob.type });
+        let blob;
+        try {
+          // 中文注释：优先使用 omit，适配 Access-Control-Allow-Origin: * 的飞书下载链接
+          blob = await this.downloadFeishuFile(url, 'omit');
+        } catch (omitErr) {
+          // 中文注释：兜底重试 include，兼容必须携带凭证的场景
+          blob = await this.downloadFeishuFile(url, 'include');
+          console.warn('[FEIYU_UPLOAD_DEBUG] 飞书下载 omit 失败后 include 重试成功', {
+            url,
+            error: omitErr?.message || String(omitErr)
+          });
+        }
+
+        let filename = 'image.png';
+        try {
+          const pathname = new URL(url).pathname || '';
+          const rawFilename = pathname.substring(pathname.lastIndexOf('/') + 1);
+          if (rawFilename) filename = rawFilename;
+        } catch (e) {
+          // 中文注释：URL 解析失败时保留默认文件名
+        }
+
+        return new File([blob], filename, { type: blob.type || 'image/png' });
       } catch (error) {
         console.error('urlToFile error:', error);
-        this.addLog('图片转换失败', `URL: ${url}\nError: ${error.message}`);
+        const shortUrl = url.length > 180 ? `${url.slice(0, 180)}...` : url;
+        this.addLog('图片转换失败', `URL: ${shortUrl}\nError: ${error.message}`);
         return null;
       }
     },
@@ -2889,6 +3199,28 @@ export default {
       color: var(--color-text-4);
       transform: scale(0.9);
     }
+  }
+}
+
+.url-upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  input[type="file"] {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .url-upload-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .url-upload-count {
+    font-size: 12px;
+    color: var(--color-text-2);
   }
 }
 

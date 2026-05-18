@@ -42,6 +42,17 @@ export const GetPlugAd = async (data) => { // 获取轮播
   })
 };
 
+export const GetYunToken = async (data) => { // 获取云存储临时凭证
+  return request({
+    url: '/api/v0.1/common/yun.token',
+    method: 'POST',
+    data: {
+      plugId: PlugId,
+      ...data,
+    },
+    isToken: true,
+  })
+};
 
 
 
