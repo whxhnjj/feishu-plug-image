@@ -138,12 +138,25 @@
           <div class="item-left">
             <span class="item-icon icon-fixed-0"><icon-palette /></span>
             <div class="item-info">
-              <span class="label-text">{{ configList.model.title }}</span>
+              <div class="label-with-help">
+                <span class="label-text">{{ configList.model.title }}</span>
+                <a-tooltip trigger="hover" position="top"
+                  content="同一模型在不同线路下，积分消耗可能不同；各线路稳定性也会有差异。模型生图质量目标一致，但成功率会受线路状态影响，请按您的实际需求选择线路。">
+                  <span class="label-help-icon">
+                    <icon-question-circle />
+                  </span>
+                </a-tooltip>
+              </div>
             </div>
           </div>
           <div class="item-right">
             <a-select v-model="formData.aiModel" class="minimal-select" allow-search
-              :placeholder="t('pleaseSelect')" :trigger-props="{ autoFitPopupMinWidth: true }">
+              :placeholder="t('pleaseSelect')" :trigger-props="{
+                autoFitPopupWidth: false,
+                autoFitPopupMinWidth: false,
+                popupStyle: { width: '300px' },
+                contentClass: 'model-select-popup-content'
+              }">
               <template #label="{ data }">
                 <div v-if="data" class="model-option-left" style="gap: 4px; min-width: 0; width: 100%;">
                   <div class="model-icon-box" style="width: 20px; height: 20px; border-radius: 4px;">
@@ -163,7 +176,12 @@
                       <img :src="getImgSrc(opt.value)" alt="icon" class="model-icon-img" />
                     </div>
                     <div class="model-name-wrapper">
-                      <span class="model-name">{{ opt.label || opt.name }}</span>
+                      <div class="model-name-group">
+                        <span class="model-name">{{ opt.label || opt.name }}</span>
+                        <span v-if="opt.plan !== undefined && opt.plan !== null && opt.plan !== ''" class="model-line-text">
+                          线路 {{ opt.plan }}
+                        </span>
+                      </div>
                       <div v-if="opt.is_active" class="model-badge">
                         {{ opt.is_active }}
                       </div>
@@ -710,6 +728,7 @@ export default {
           label: model?.label ?? model?.name ?? model?.value ?? '',
           name: model?.label ?? model?.name ?? model?.value ?? '',
           points: Number(model?.points ?? 0),
+          plan: model?.plan,
           is_active: model?.is_active || '',
           excludeLanguage: Array.isArray(model?.excludeLanguage) ? model.excludeLanguage : []
         }));
@@ -742,6 +761,7 @@ export default {
           label: item?.name ?? item?.label ?? item?.value ?? '',
           name: item?.name ?? item?.label ?? item?.value ?? '',
           points: Number(item?.points ?? 0),
+          plan: item?.plan,
           is_active: item?.is_active || '',
           excludeLanguage: Array.isArray(item?.excludeLanguage) ? item.excludeLanguage : []
         }))
@@ -2269,11 +2289,27 @@ export default {
 </script>
 
 <style lang="scss">
-.arco-trigger-popup {
-  max-width: 325px;
+.model-select-popup-content {
+  .arco-select-dropdown {
+    width: 300px !important;
+    max-width: 300px !important;
+    max-height: 350px !important;
+    overflow: hidden !important;
+  }
+
+  .arco-select-dropdown-list-wrapper {
+    max-height: 350px !important;
+  }
+
+  .arco-select-option {
+    min-height: 44px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 
   .arco-select-option-content {
     width: 100%;
+    line-height: 1.5;
   }
 }
 
